@@ -41,7 +41,7 @@ const CONFIG = {
 
   /* Admin yang boleh membuka Tetapan dan mengubah data.
      WAJIB diisi. Jika kosong, semua guru menjadi admin. */
-  ADMIN: ["g-45275576@moe-dl.edu.my"]
+  ADMIN: ["admin@moe-dl.edu.my"]
 };
 </script>
 
@@ -441,28 +441,59 @@ $('fileXls').addEventListener('change',async e=>{
   try{
     const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
     const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
-    const up=v=>String(v).toUpperCase().trim();
+    const up=v=>String(v==null?'':v).toUpperCase().trim();
+
+    // cari baris tajuk
     let hdr=-1;
-    for(let i=0;i<Math.min(rows.length,30);i++) if(rows[i].some(c=>up(c)==='NAMA')){ hdr=i; break; }
+    for(let i=0;i<Math.min(rows.length,40);i++) if(rows[i].some(c=>up(c)==='NAMA')){ hdr=i; break; }
     if(hdr<0) throw new Error('Lajur NAMA tidak dijumpai.');
-    const head=rows[hdr].map(up);
-    const iNama=head.indexOf('NAMA');
-    const iKelas=head.findIndex(h=>h.includes('KELAS'));
+    const H=rows[hdr].map(up);
+
+    const iNama=H.indexOf('NAMA');
+    const iJan =H.findIndex(h=>h.includes('JANTINA'));
+    const iStat=H.findIndex(h=>h.includes('STATUS PENGAJIAN'));
+    const iThn =H.findIndex(h=>(h.includes('TAHUN')||h.includes('TINGKATAN'))&&!h.includes('TARIKH'));
+    let iKelas =H.indexOf('NAMA KELAS');
+    if(iKelas<0) iKelas=H.findIndex(h=>h.includes('KELAS')&&!h.includes('TARIKH')&&!h.includes('JENIS')&&!h.includes('GURU'));
+
+    // "TAHUN LIMA" + "ILTIZAM"  ->  "5 ILTIZAM"
+    const NOM={SATU:'1',DUA:'2',TIGA:'3',EMPAT:'4',LIMA:'5',ENAM:'6'};
+    const gabung=(thn,kls)=>{
+      thn=up(thn); kls=up(kls);
+      if(!kls) return thn||'KELAS TANPA NAMA';
+      if(/PRASEKOLAH|PPKI|KHAS/.test(kls)) return kls;   // sudah unik
+      if(/^\d/.test(kls)) return kls;                     // sudah ada nombor
+      let d='';
+      const m=thn.match(/(?:^|\s)(\d)(?:\s|$)/);
+      if(m) d=m[1]; else for(const w in NOM) if(thn.includes(w)){ d=NOM[w]; break; }
+      return d?d+' '+kls:kls;
+    };
+
     const bank={};
+    let langkau=0;
     for(let i=hdr+1;i<rows.length;i++){
       const nama=String(rows[i][iNama]||'').trim();
       if(!nama) continue;
-      const kelas=(iKelas>=0?String(rows[i][iKelas]||'').trim():'')||'KELAS TANPA NAMA';
-      const u=' '+nama.toUpperCase()+' ';
-      const j=(u.includes(' BINTI ')||u.includes(' BT ')||u.includes(' BINTE '))?'P':'L';
-      (bank[kelas]=bank[kelas]||[]).push(`${j}|${nama}`);
+      if(iStat>=0){
+        const st=up(rows[i][iStat]);
+        if(st && st!=='BERSEKOLAH'){ langkau++; continue; }   // murid berhenti/bertukar
+      }
+      let j;
+      if(iJan>=0 && up(rows[i][iJan])) j = up(rows[i][iJan]).startsWith('P') ? 'P' : 'L';
+      else { const u=' '+nama.toUpperCase()+' '; j=(u.includes(' BINTI ')||u.includes(' BT ')||u.includes(' BINTE '))?'P':'L'; }
+
+      const kelas=gabung(iThn>=0?rows[i][iThn]:'', iKelas>=0?rows[i][iKelas]:'');
+      (bank[kelas]=bank[kelas]||[]).push(j+'|'+nama);
     }
-    const keys=Object.keys(bank);
+
+    const keys=Object.keys(bank).sort((a,b)=>a.localeCompare(b,'ms',{numeric:true}));
     if(!keys.length) throw new Error('Tiada nama murid dijumpai.');
-    keys.forEach(k=>bank[k].sort((a,b)=>a.slice(2).localeCompare(b.slice(2))));
-    DB=bank; kelasKini=keys.sort((a,b)=>a.localeCompare(b,'ms',{numeric:true}))[0]; absen.clear();
+    keys.forEach(k=>bank[k].sort((a,b)=>a.slice(2).localeCompare(b.slice(2),'ms')));
+
+    DB=bank; kelasKini=keys[0]; absen.clear();
     drawKelas(); loadEditor(); render();
-    toast(`${keys.length} kelas, ${Object.values(bank).flat().length} murid. Tekan Simpan ke Firebase.`,'good');
+    const jum=Object.values(bank).reduce((n,a)=>n+a.length,0);
+    toast(`${keys.length} kelas, ${jum} murid${langkau?` (${langkau} dilangkau)`:''}. Tekan Simpan ke Firebase.`,'good');
   }catch(err){ toast('Gagal baca fail: '+err.message,'bad'); }
   e.target.value='';
 });
