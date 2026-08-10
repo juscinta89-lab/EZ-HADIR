@@ -1,0 +1,59 @@
+rules_version = '2';
+
+/* ══════════════════════════════════════════════════════════════
+   EZ-HADIR — Firestore Security Rules
+
+   PENTING: tukar senarai emel dalam fungsi admin() kepada emel
+   admin sekolah yang sebenar sebelum Publish.
+
+   Ringkasan:
+   • Orang awam (tidak log masuk)  → tiada akses langsung
+   • Guru domain sekolah           → baca sahaja
+   • Admin sekolah                 → baca dan tulis
+   ══════════════════════════════════════════════════════════════ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logMasuk() {
+      return request.auth != null
+          && request.auth.token.email != null
+          && request.auth.token.email_verified == true;
+    }
+
+    // Guru: akaun Google domain sekolah sahaja.
+    function guru() {
+      return logMasuk()
+          && request.auth.token.email.matches('(?i)^[^@]+@moe-dl[.]edu[.]my$');
+    }
+
+    // Admin: senarai tetap. GANTI dengan emel admin sekolah anda.
+    function admin() {
+      return logMasuk()
+          && request.auth.token.email.lower() in [
+               'admin@moe-dl.edu.my'
+             ];
+    }
+
+    // Senarai murid mengikut kelas
+    match /kelas/{kelasId} {
+      allow read:  if guru();
+      allow write: if admin()
+                   && request.resource.data.nama is string
+                   && request.resource.data.murid is list
+                   && request.resource.data.murid.size() <= 200;
+      allow delete: if admin();
+    }
+
+    // Tetapan sistem termasuk token bot Telegram
+    match /tetapan/{docId} {
+      allow read:  if guru();
+      allow write: if admin();
+    }
+
+    // Semua yang lain ditutup
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

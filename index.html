@@ -24,13 +24,6 @@
    Boleh tambah seberapa banyak kelas.
    ══════════════════════════════════════════════════════════════ */
 const CONFIG = {
-  BOT_TOKEN: "",              // dari @BotFather
-  CHAT_ID:   "",              // cth "-1001234567890" (kumpulan sekolah)
-  MONO:      false,           // true = hantar dalam blok monospace
-
-  /* ── Log masuk Google ────────────────────────────────────────
-     Biar apiKey kosong = sesiapa boleh guna (mod ujian).
-     Isi tetapan Firebase untuk kunci app kepada guru sekolah sahaja. */
   FIREBASE: {
     apiKey:            "AIzaSyBQyQyzrrYua5VTEIWrtwCOZz7UGQz5qVI",
     authDomain:        "ez-hadir.firebaseapp.com",
@@ -39,529 +32,16 @@ const CONFIG = {
     messagingSenderId: "198348021865",
     appId:             "1:198348021865:web:e5a167e59188979c86c2f8"
   },
+
+  /* Guru yang boleh log masuk */
   AKSES: {
-    domain: ["moe-dl.edu.my"],  // domain Google yang dibenarkan
-    emel:   []                  // emel individu tambahan, cth "cikgu@gmail.com"
+    domain: ["moe-dl.edu.my"],
+    emel:   []
   },
 
-  KELAS: {
-    "PRASEKOLAH INDAH": [
-      "P|AISY ERYNA QAIREEN BINTI MUHAMMAD ZAHARI",
-      "L|AMEER LUTH HAMZAH BIN ABDUL MUKHRIZ",
-      "P|CIK NUR ARDELIEYA ASYIFFA BINTI CHE ROSLEE",
-      "L|MOHAMAD HARRAZ NAUFAL BIN MOHAMAD NAZRI",
-      "L|MUHAMAD FARIS FATTAH BIN RUSMI",
-      "L|MUHAMMAD AALI RIZFA BIN ABDULLAH",
-      "L|MUHAMMAD ADAM RIZQI BIN MOHD YUSRI SHAHIDAN",
-      "L|MUHAMMAD HARRAZ AQMAR BIN SULAIMAN",
-      "L|MUHAMMAD NOAH AFFAN BIN MOHD FAIRUZ",
-      "L|MUHAMMAD SHAHIR AMMAR BIN SHAHRIL",
-      "L|MUHAMMAD WALIYYI MURSYID BIN MOHD SOLLEH",
-      "L|NIK MUHAMMAD IFFAT FIRDAUS BIN NIK NOR HISHAMUL HILMI",
-      "P|NOR HANAN IRDINA BINTI NORHAFIZA",
-      "P|NUR ANNISA SYIFA BINTI MOHAMAD ZULNAZRI",
-      "P|NUR ANNISA UFAIRAH BINTI NOOR ZAMZURI",
-      "P|NUR ARIANA QALESYA BINTI MOHD RAZIF",
-      "P|NUR HANA MARISSA BINTI MOHD FARIQ",
-      "P|NUR KAYYISA SYAZWI BINTI MOHD AZILLAH",
-      "P|NUR TASNIM HUMAIRA BINTI ABDUL RAHMAN",
-      "P|NUR ZAYANA ZAFIEYAA BINTI ZAKWAN",
-      "P|NURHAJAR AAFIYAH BINTI MUHAMMAD FIZHAL",
-      "P|NURUL HANANIA BINTI ASMADI",
-      "P|PUTERI NUR CHANTIQ HANANIA BINTI MUHAMMAD RASUL",
-      "L|RAYYAN MIKHAIL BIN ROSLIN",
-      "P|WAN MARYAM RAIHANAH BINTI WAN MOHD RIZAL"
-    ],
-    "PRASEKOLAH INSANI": [
-      "L|AYMAN AMZAR BIN AZHAR",
-      "P|CIK NUR ARDELIEYA ASYAFFIA BINTI CHE ROSLEE",
-      "P|FATMA DHIYA LASHIRA BINTI MOHD FIRDAUS",
-      "L|MOHAMAD AIDAN DANIAL BIN KAMAL",
-      "L|MOHAMMAD QAYYUM BIN ABDUL KHALIQ",
-      "L|MUHAMAD ADRIAN NUFAIL BIN MUHAMAD AZRI",
-      "L|MUHAMMAD AAKIF HANAQI BIN YUSDI",
-      "L|MUHAMMAD AAKIF IDRIS BIN MOHD RIDWAN",
-      "L|MUHAMMAD ADAM MIKHAIL BIN MOHD HANAFI",
-      "L|MUHAMMAD AIDAN RAUF BIN MURAD ALI KHAN",
-      "L|MUHAMMAD AIMAN ASHRAF BIN ABDULLAH",
-      "L|MUHAMMAD AKID HAMZI BIN MUHAMMAD HAFIZUDDIN",
-      "L|MUHAMMAD HARITH KHALISH BIN MOHD HAIRI",
-      "L|MUHAMMAD ILYAS SUFYAN BIN MOHAMMAD SYAHIR",
-      "L|MUHAMMAD RIZQI BIN RIZUAN",
-      "L|MUHAMMAD UMAR HABIB BIN MOHAMAD IRFAN",
-      "L|MUHAMMAD UWAIS BIN MOHD NASRUN",
-      "P|NIK ASMA' BINTI NIK MOHD SABRI",
-      "L|NIK MUHAMMAD ARIF IRFAN BIN NIK ABDULLAH",
-      "P|NOOR SYAIDATUL NUHA BINTI SAIFULDIN",
-      "P|NUR AISY ALEESA BINTI MOHD NORHISHAM",
-      "P|NUR RAISYA UMAIRAH BINTI MUHAMMAD SAFARI",
-      "P|TENGKU ARIQA ZHAFRA BINTI TENGKU AMRAN",
-      "L|YUSUF ZAFRAN BIN MOHD AZUAN"
-    ],
-    "PRASEKOLAH INTAN": [
-      "L|AHMAD HAZIQ BIN MAT ASRI",
-      "L|ASYRAF IMAN BIN ARZUNAIDI",
-      "P|DHIA KHADEEJA BINTI KAMARUDIN",
-      "L|MOHAMAD DANIAL HAIKAL BIN MOHD AZIZAN",
-      "L|MUHAMAD RAQWAN BIN MOHAMAD RUSHDAN",
-      "L|MUHAMAD ZARITH ISKANDAR BIN ZAHARI",
-      "L|MUHAMMAD AMJAD BIN ZAHID",
-      "L|MUHAMMAD MUIZ AL FATEH BIN MOHD KAMARUSAYUTI",
-      "L|MUHAMMAD RAYYAN FIRDAUS BIN MOHD SYUKRI",
-      "L|MUHAMMAD THAQIF ARSYAD BIN MOHD TAMIZI",
-      "P|NIK NUR HAIFA SOFEA BINTI NIK MOHAMMAD HASRUL",
-      "P|NUR AAIRA SAFIYYAH BINTI ROSLEHAN",
-      "P|NUR ANIS FARHANA BINTI HAJIZI",
-      "P|NUR AULIA QALISYA BINTI ZAHARI",
-      "P|NUR DAMIA SYAFIQHA BINTI ZUNAIDI",
-      "P|NUR LINDA HANNAN AULIA BINTI ABDUL HAKIM",
-      "P|NUR LUTHAISYA ZHAFIRA BINTI IBRAHIM",
-      "P|NUR SYABANIA AUFIA BINTI SHAHRUL AMIN",
-      "P|NUR SYARIFAH SABRINA BINTI MUHAMAD SYAHDANIAL",
-      "P|NURUL IMAN BINTI MOHD NIZAM",
-      "P|PUTERI NUR ALISHA BINTI ABD GHAFFAR",
-      "P|RAIHANNA SOFEA BINTI MUHAMAD IZZULISLAM",
-      "P|RANIA QAIRINA BINTI MUHAMAD SYAFIQUL AZHAN",
-      "P|SITI NORAISYAH HUMAIRAH BINTI ABD HAFIZ",
-      "P|TENGKU HUMAIRAH BINTI TENGKU LUQMAN NURHAKIM"
-    ],
-    "1 ILTIZAM": [
-      "P|ANIS ZHAFIRA BINTI ZAMZURI",
-      "P|IMATUL RAISSA AZZAHRA BINTI MOHD REDZUAN",
-      "L|MUHAMMAD AAKIF DAYYAN BIN ZAMRUL NIZAM",
-      "L|MUHAMMAD ADAM DANIYAL BIN MOHD HANAFI",
-      "L|MUHAMMAD ADEEB WAFIUDDIN BIN ABDULLAH",
-      "L|MUHAMMAD AKHYAR BIN NORDIN",
-      "L|MUHAMMAD AL FATIH BIN MOHD AFZAL IKHWAN",
-      "L|MUHAMMAD IMAN HARIS BIN KHAIROL ANUAR",
-      "L|MUHAMMAD RASYDAN BIN RIZUAN",
-      "L|MUHAMMAD THAQIF BIN MOHD ZULFADLY",
-      "P|NIK ALEEYA MAISARA BINTI NIK MOHD FAIZUAN",
-      "P|NIK NOURA DELISHA BINTI NIK MOHD AZRAI HILMI",
-      "P|NIK NUR ALEEYA BINTI NIK ALI",
-      "P|NUR AIN BALQIS BINTI NOOR MAZLAN",
-      "P|NUR AISYA ADAWIYAH BINTI MUHAMAD AZMI",
-      "P|NUR ALMEERA SOFEA BINTI SHAHRIL",
-      "P|NUR AMANDA SOFFIE BINTI RAMDI",
-      "P|NUR ARIANA SYAFIQAH BINTI MUHAMMAD SAFIQ",
-      "P|NUR FARISYA ARIANA BINTI SHAHRUL AZMI",
-      "P|NUR HANI IZATI BINTI HAFIZ",
-      "P|NUR RABIATUL ADAWIYAH BINTI KAMARUDDIN",
-      "P|NURUL ALEESA BINTI MOHD NORDIN",
-      "L|RAJA HULAIF BIN RAJA HUSSNI",
-      "P|RAUDAHTUL MUSFIRAH BINTI MOHD HAFIZ HAFIZOL",
-      "P|SITI NOR SHAZWANA BINTI AHMAD FAIZAL",
-      "P|SYARIFAH YASMEEN SUMAYYAH BINTI SAYID AZLAN",
-      "L|TENGKU TARIQ HAFIDH BIN TENGKU TASSRIQ HAFIZ",
-      "L|WAN MUHAMAD RIZQI BIN WAN MOHD RIZAL"
-    ],
-    "1 INSPIRASI": [
-      "L|ADAM HARRAZ BIN AHMAD ASROL HAKIMI",
-      "L|KHALIS AISY NAUFAL BIN MUHAMMAD KHAIRUL SYAHMI",
-      "L|MUHAMMAD ADAM RIZQI BIN MOHD ALIAS",
-      "L|MUHAMMAD AKIF IKTIZAZ BIN MOHD RADZUAN",
-      "L|MUHAMMAD AL FATEH BIN MOHD NASRUN",
-      "L|MUHAMMAD AMMAR RAYYAN BIN MURAD ALI KHAN",
-      "L|MUHAMMAD FARIS ILHAM BIN MUHAMMAD NAZRI",
-      "L|MUHAMMAD NOORHADIF FAHEEM BIN MOHD NOORHISHAM",
-      "L|MUHAMMAD RAYYAN BIN ABDUL RAHMAN",
-      "L|MUHAMMAD SYAQIL IMAN BIN SHAHRUL AMIN",
-      "L|MUHAMMAD TAQIUDDIN AFSAR BIN MOHD TAMIZI",
-      "L|MUHAMMAD ZAFRIEL DARWISH BIN ZAHARI",
-      "P|NAURA ALFIRA BINTI MOHD RAZALI",
-      "L|NIK AQLAN MUQRY ZAIN BIN NIK NUR MOHAMED ZULFAKAR",
-      "L|NOR MOHAMMAD HARIZ IRFAN BIN NORHAFIZA",
-      "P|NOR ZARA BATRISYA BINTI MUHAMMAD ZAKI",
-      "P|NUR AINUL DARWISYA BINTI MOHD ISMAHADI",
-      "P|NUR AINUN MARDIAH BINTI MOHD HASROL",
-      "P|NUR AREESA BINTI MOHAMMAD AZIZ",
-      "P|NUR DINI DALILI BINTI MOHAMAD RIZWAN",
-      "P|NUR EDAYU BINTI MAT SOTI",
-      "P|NUR IRDINA SYAZIA BINTI MOHD ISMARISHAM",
-      "P|NUR IZZARA SAFIYYA BINTI MOHD ZULHAIRI",
-      "P|NUR SALWANI AINUN BINTI MOHD ZAINUN",
-      "P|NUR USNA SYAQILAH BINTI MOHD FADLAM",
-      "P|NURUL DEANISA HANELLA BINTI ABDUL WAFI",
-      "P|NURUL SAFIYYAH BINTI MUHAMMAD SUFIYAN",
-      "P|ROSE AMANDA SAFIYYA BINTI MOHAMAD SAZALI",
-      "P|SITI FATIMAH AZZAHRA BINTI AZMAN",
-      "P|SITI NUR QAISARA AISYA BINTI MOHD ADNAN",
-      "P|TENGKU ADWA ALINA BINTI TENGKU AMRAN",
-      "P|WARDA MUHAYYA BINTI MOHD SHUKRI"
-    ],
-    "2 ILTIZAM": [
-      "P|AYRA ARISSA BINTI AZIZAN MERI",
-      "P|HUMAIYRA NUR AISYAH BINTI MOHD HAFIZI",
-      "L|ISMA AFFAN BIN ISMAIL",
-      "P|MARYAM MARISSA BINTI AHMAD SOODIQ",
-      "L|MUHAMMAD ADIB NAUFAL BIN MOHAMAD HAFIZI",
-      "L|MUHAMMAD AFIQ RAYQAL BIN AB HALIM",
-      "L|MUHAMMAD AL AYYUBI FAIZ BIN MOHAMMAD SYAHIR",
-      "L|MUHAMMAD FAIQ AIDAN BIN MOHD ZAIDI",
-      "L|MUHAMMAD NAUSHAD AL-ARSYI BIN NASARUDDIN",
-      "L|MUHAMMAD NOR ADAM PUTRA BIN NORAIDIL SHAHROL",
-      "L|MUHAMMAD UWAIS AL AQEEL BIN MUHAMMAD AMIN",
-      "P|MYA QALEESYA BINTI MOHD FIRDAUS",
-      "P|NOOR SYAIDATUL SYIFAA BINTI SAIFULDIN",
-      "P|NUR ADNI ZUHAIRA BINTI MOHD ZAMRI",
-      "P|NUR AFIA ARISSA BINTI MUHAMAD AZROY",
-      "P|NUR AISYAH BINTI NOOR ZAIDI",
-      "P|NUR AIYRA SALSABELA BINTI MOHD MAHADI",
-      "L|NUR AQIL DZAFRI BIN KAMARUDIN",
-      "P|NUR ATIYA KHAYRA BINTI ABDUL RAHMAN",
-      "P|NUR AULIYA RAUDHAH BINTI MOHAMAD RIZMIZAN",
-      "P|NUR HAFIY INTISYAR BINTI SUHAIMI",
-      "P|NUR HANANIA ZIANNISA BINTI HAZIZI",
-      "P|NUR HAWA ZARA SOFFEA BINTI AHMAD ADHA",
-      "P|NURUL ARISHA BINTI ROSLI",
-      "L|WAN MUKHRIZ BIN WAN SUHAIMI",
-      "L|YUSOFF BIN MOHD ZAIDI"
-    ],
-    "2 INOVASI": [
-      "L|AARIZ AMZAR BIN AZMI",
-      "L|ABDUL RASYID BIN ABDUL HAFIZ",
-      "L|AHMAD SOLEHUDDIN BIN MOHD SHAHARUDIN",
-      "L|AKMAL ALHAFIS BIN MOHD SAPARIZAN",
-      "P|AUNI YUSRA BINTI YASSIR",
-      "L|DARWISH SYAFIN BIN ZUNAIDI",
-      "L|MOHAMAD SYAHMI BIN ZAHARUDDIN",
-      "L|MOHAMMAD IYLIAS FIDAIY BIN MOHD AZAHARUDIN",
-      "L|MUHAMMAD ADIF HAMZI BIN MUHAMMAD HAFIZUDDIN",
-      "L|MUHAMMAD AISY NAUFAL BIN ABDULLAH",
-      "L|MUHAMMAD ALIFF AIMAN BIN MOHD ZULKEFLY",
-      "L|MUHAMMAD DANISH DANIAL BIN ZAINAL",
-      "L|MUHAMMAD THAQIF BIN MOHD TAMIZI",
-      "L|MUHAMMAD WAFIY MIKAEL BIN SABRI",
-      "L|NIK DIHYA SYARIFUDDIN BIN NIK ABDUL HAFIZ FIKRI",
-      "P|NORSYAFIKA BINTI MOHD SYAHRIL",
-      "P|NUR AINA SOFIA BINTI CHE SIN",
-      "P|NUR BALQIS SYAHIRAH BINTI HAMZAH",
-      "P|PUTRI NUR IZZARA BINTI RAMLI"
-    ],
-    "3 INSPIRASI": [
-      "P|ADELIA KHAYLA BINTI MUHAMMAD ANUAR",
-      "P|AINNUR AAFIYAH BINTI MOHD HAFIZA",
-      "L|MUHAMAD SHAHRIN ARMEE BIN MUHAMAD SHAFARIN",
-      "L|MUHAMMAD ALIF BIN MOHD SHABRE",
-      "L|MUHAMMAD AQIL SYAHID BIN ROSLEHAN",
-      "L|MUHAMMAD ARSYAD IZZ HARIZ BIN NURHAIME",
-      "L|MUHAMMAD ARYAN BIN MUHAMMAD NASHAHRUDIN",
-      "L|MUHAMMAD FAYYADH HANEEF BIN SUHAIMI",
-      "L|MUHAMMAD HABIL FAHMI BIN ABDULLAH",
-      "L|MUHAMMAD WAIZ SYAZWI BIN ZAHARI",
-      "L|NIK MUHAMMAD LUTH BIN NIK HASMADI",
-      "P|NIK NUR BALQIS BINTI NIK MOHD AL FIRDAUS",
-      "P|NOR ADELIA BINTI MOHD RIDZUAN",
-      "P|NOR AYESHA HANNANI BINTI MOHD KHAIRUL AZMI",
-      "P|NUR AAIRA FASIHAH BINTI HISHAMMUDIN",
-      "P|NUR AEYRA ZHAHIERA BINTI ZULFIKRI",
-      "P|NUR AIRA FATHYA BINTI ABD RASHID",
-      "P|NUR AMMARA SOFIA BINTI SULAIMAN",
-      "P|NUR HASYA MEDINA BINTI MOHD FARIQ",
-      "P|NUR HUMAIRA BINTI HANAFI",
-      "P|NUR IZZARA ZAHIRAH BINTI ZURAIDI",
-      "P|NUR JANNAH BINTI MOHD NORHISHAM",
-      "P|NUR SYAMIMI BINTI ASRI",
-      "P|NURATHIRAH ATIKAH BINTI ADNAN",
-      "P|NURUL NADIA SYAFIYAH BINTI MOHD AZUAN"
-    ],
-    "3 ILTIZAM": [
-      "P|AALIYA AMEENA BINTI AHMAD SOODIQ",
-      "L|ALIM MUJAHID BIN MOHD KHUSYAIRIE",
-      "L|AMEER MUAYYAD BIN ABDUL MUKHRIZ",
-      "P|ANNUR AAIRA AMMARA BINTI MOHD RIDUAN",
-      "P|AYRA AFEEFA BINTI ARMAN",
-      "L|CHE MUHAMMAD AMSYAR BIN CHE MAT",
-      "P|MIA ADREENA QALEESHA BINTI ABDULLAH",
-      "L|MUHAMMAD HAIKAL HAMKA BIN MOHD HAMKA",
-      "L|MUHAMMAD JARIR BIN MOHD MIQDAD ASWAD",
-      "L|MUHAMMAD LUQMANUL HAKIM BIN AZMAN",
-      "L|MUHAMMAD SOLAHUDDIN AL AYUBI BIN HAIRI",
-      "L|MUHAMMAD WAFIQ MIRZA BIN MOHD FAHAMI MUSLIM",
-      "L|MUHAMMAD ZAFRAN HAFIY BIN MOHD ZULHAIRI",
-      "L|MUHAMMAD ZAIM KHALISH BIN NASRUL",
-      "L|NIK MUHAMMAD IZZAT NAJMI BIN NIK NOR HISHAMUL HILMI",
-      "P|NIK NUR RABIATUL ADAWIYAH BINTI NIK AHMAD FADLI",
-      "P|NIK QISYA KIASATINA BINTI NIK NUR MOHAMED ZULFAKAR",
-      "P|NUR AIRA AMANDA BINTI ABDULLAH",
-      "P|NUR AMANI SOFEA BINTI MOHAMAD FIRDAUS",
-      "P|NUR AMMARA SOFFEA BINTI RAMDI",
-      "P|NUR AULIA ZHAFIERA BINTI ZULFIKRI",
-      "P|NUR DAYANA SYAKIRA BINTI HASRI",
-      "P|NUR DHIYA HUMAIRA BINTI MOHD AZIZAN",
-      "P|NUR KASIH KIRANA ATIARA BINTI MOHD SYUKRI",
-      "P|NURUL ADLINA BINTI MOHD NORDIN",
-      "P|NURUL ERYNA MAISARAH BINTI MOHAMAD NAZRI",
-      "P|NURUL IZYAN ALISHA BINTI EHSHAM",
-      "P|PUTRI AISYA SHAFIYYA BINTI MUHAMMAD AMIRUL IZUAN",
-      "P|RANIATUL MARIAM BINTI MOHD HAFIZ HAFIZOL"
-    ],
-    "4 INSPIRASI": [
-      "L|AHMAD ALIF HAIKHAL BIN EZANI",
-      "L|AHMAD SYAHIR ALWI BIN AHMAD SAPUDIN",
-      "P|HASNA NABILA BINTI MOHD HANAFI",
-      "L|MOHAMAD DARWISY IRFAN BIN MOHAMAD NORDIN",
-      "L|MUHAMMAD AIMAN FIRDAUS BIN ABDULLAH",
-      "L|MUHAMMAD AMRU FIRAS BIN MOHD AMIRUL HISHAM",
-      "L|MUHAMMAD AZMEER HAKIMI BIN RUYSOF",
-      "L|MUHAMMAD FAIZ HADIF BIN SHAHRUL AZMI",
-      "L|MUHAMMAD FATTAH AMIN BIN SHARIZAN FAAZILINA",
-      "L|MUHAMMAD FIRAZ AIMAN BIN MUHAMMAD NAZRI",
-      "L|MUHAMMAD NUR RIZKI BIN ABDULLAH",
-      "L|MUHAMMAD SUFYAN DANISH BIN SHAH RIZAL",
-      "L|MUHAMMAD SYAHMI BIN MOHD FADLAM",
-      "L|MUHAMMAD SYAKIR AIMAN BIN MUHAMAD SYAHDANIAL",
-      "L|MUHAMMAD ZAQUAN ADRIAN BIN ZAHARI",
-      "L|NIK MUHAMMAD QAYYUM AMEER BIN IBRAHIM",
-      "L|NIK MUHAMMAD RIFFAT BIN NIK MOHD FAISAN",
-      "P|NIK NUR DAMIESYA BINTI NIK SOH",
-      "P|NUR AFIA INARA BINTI AZAHAREE",
-      "P|NUR AINA MAISARAH BINTI HAJIZI",
-      "P|NUR AISY DHUHA BINTI HANIFLI",
-      "P|NUR DALILI NASUHA BINTI MOHD SAIFUDIN",
-      "P|NUR EBBIY SAFIYRA BINTI MUHAMMAD ZUHARIS",
-      "P|NUR FATIN MAISARAH BINTI RIDHWAN",
-      "P|NUR MAISARA BINTI MOHD NASIR",
-      "P|NUR RAISYA AULIA BINTI MOHD ROSLI",
-      "P|NURUL DELISHA HUMAIRA BINTI ABDUL WAFI",
-      "P|PUTERI NUR DHIA AL RAMADHANI BINTI ABDULLAH",
-      "L|TUAN WAFI IMAN BIN TUAN MUHAMAD HAFIZ",
-      "L|UWAIS BIN ABDULLAH"
-    ],
-    "4 ILTIZAM": [
-      "L|AHMAD HUD AN'AM BIN ABDUL RAHMAN",
-      "P|AIN NUR ZAFIRAH BINTI ZAMZURI",
-      "P|AMEERA MUAZARA BINTI ABDUL MUKHRIZ",
-      "L|AUFA AL AFIF BIN MOHD HAFIZA",
-      "P|DHIYA MADEEHA BINTI MAHADI",
-      "P|IMATUL RABIHAH AZZAHRA BINTI MOHD REDZUAN",
-      "P|INTAN AMIRA BATRISHA BINTI BUDIN",
-      "L|MOHAMAD AMSYAR RAZIQ BIN MOHAMAD RIZMIZAN",
-      "L|MOHAMAD RAFIQ HILMAN BIN MOHD RIDZUAN",
-      "L|MOHAMAD RAFIQ HILMI BIN MOHD RIDZUAN",
-      "L|MUHAMMAD ARSYAD QAISER BIN MOHD FARISZUHAR",
-      "L|MUHAMMAD FAIQ DARWISY BIN MOHD FARIQ",
-      "P|NIK MARYAM KHADEEJA BINTI NIK HASMADI",
-      "L|NIK MUHAMMAD AMMAR RAZIN BIN NIK MOHD ROSLAN",
-      "P|NIK QASEH HUMAIRA BINTI NIK NOR HISHAMUL HILMI",
-      "L|NIK SYAKIR BIN NIK MOHD SABRI",
-      "P|NUR FELISYA SOFEA BINTI SHAMSUDDIN",
-      "P|NUR HAWA HUMAIRA BINTI AHMAD ADHA",
-      "P|NUR SARA QAMYLEA BINTI NOR AIDIL",
-      "P|NUR ZARA RAISHA BINTI ABDUL RAQIB",
-      "P|NURUL MAISARAH BINTI ASMADI",
-      "P|PUTRI NURBARIEQAH BINTI SAM SULIYANA",
-      "P|SAFFIENA BINTI JAFFRE"
-    ],
-    "5 INSPIRASI": [
-      "L|AHMAD AMMAR AL FATEH BIN IZHAM",
-      "L|AHMAD SYAHMI LUTFI BIN AHMAD SAPUDIN",
-      "L|CHE AHMAD HAZIQ BIN CHE MOHD SAHARUDIN",
-      "P|DHIA ZULAIKHA BINTI ARIFF",
-      "P|ERINA MALISA BINTI ARZUNAIDI",
-      "L|HAFIZ ISKANDAR BIN SUHAIMI",
-      "L|MOHAMAD AFIQ DANIAL BIN MOHAMAD ARIF",
-      "L|MOHAMAD RAFAEL SAIFFULLAH BIN MOHAMAD SAZALI",
-      "L|MOHAMAD SYAHRUL IQRAM BIN MOHD YUSRI",
-      "L|MUHAMMAD ADAM ADNANI BIN ZUNAIRI",
-      "L|MUHAMMAD ADAM RAYYAN BIN MOHD ROSLI",
-      "L|MUHAMMAD AFIQ AMSYAR BIN ZALWAN",
-      "L|MUHAMMAD AMMAR ISKANDAR BIN MOHD KAMARUSAYUTI",
-      "L|MUHAMMAD AQIL AKRAM BIN MUHAMAD AFANDI",
-      "L|MUHAMMAD AQIL FIRDAUS BIN KAMARUDDIN",
-      "L|MUHAMMAD ARASY FAKHRULLAH BIN MUHAMMAD FAIZ",
-      "L|MUHAMMAD DANISH IRFAN BIN CHE SIN",
-      "L|MUHAMMAD DENIAL HAKIM BIN MOHD NAZRI",
-      "L|MUHAMMAD EKHMAL BIN MAT SOTI",
-      "L|MUHAMMAD FARIS BIN MOHD FAIROLZANI",
-      "L|MUHAMMAD FAWWAZ WILDAN BIN MUHAMMAD SYAHIR",
-      "L|MUHAMMAD HARIF NAUFAL BIN MOHD AZIZOL",
-      "L|MUHAMMAD HAZIQ BIN NOOR ZAMZURI",
-      "L|MUHAMMAD RAZIQ BIN ROSLI",
-      "L|MUHAMMAD SUFI BIN MOHD FADLAM",
-      "L|MUHAMMAD ZAFRI ZAKWAN BIN MOHD YANI",
-      "P|NOR SAFIYYA UMAIRAH BINTI MUHAMMAD SAIFUL",
-      "P|NUR FATIMAH ALZAHRA BINTI RASHID",
-      "P|NUR INARA SYAZANI BINTI MOHD ISMARISHAM",
-      "P|NUR RABIATUL ADAWIYAH BINTI GHANI",
-      "P|NUR UMAIRAH BINTI AZIT",
-      "P|NURUL JANNAH NADZIRAH BINTI MOHAMAD NASIR",
-      "P|PUTERI ALISYA SAFIYYA BINTI MIKAIL",
-      "L|WAN MUHAMAD RIBI'E BIN WAN MOHD RIZAL"
-    ],
-    "5 ILTIZAM": [
-      "L|AFIQ NAIM BIN YASSIR",
-      "L|AHMAD DARWISY BIN MOHD KAMARU",
-      "P|DHIA IZZ ZARA BINTI MUHAMMAD FAHMI MUHSIN",
-      "L|MOHAMAD ZULHAKIM BIN ZURAIDI",
-      "L|MUHAMMAD FAYYAD QAYYUM BIN SUHAIMI",
-      "L|MUHAMMAD SUFI DARWISY BIN SHAH RIZAL",
-      "P|NOR ARINA HUSNA BINTI RIZUAN",
-      "P|NUHA IMANI BINTI MOHD KHUSYAIRIE",
-      "P|NUR AIN FARIHAH BINTI RAZALLI",
-      "P|NUR AINA DAMIA BINTI ABDULLAH",
-      "P|NUR HANANIA BINTI MUHAMAD HANAFIAH",
-      "P|NUR IZZARA KHALISHA BINTI ROSLEHAN",
-      "P|NUR KHAIRAH SYAZWINA BINTI MOHD AZILLAH",
-      "P|NUR LUTHFIA ZAHRA BINTI ABDUL RAHIM",
-      "P|NUR ZAYANA ZALEEYA BINTI ZAKWAN",
-      "P|NURIN DAYANA BINTI MUHAMMAD ANUAR",
-      "P|NURUL ATHIRAH BINTI MOHD NORDIN",
-      "L|SAYID EDRUS AL JOFFREY BIN SAYID AZLAN",
-      "L|TENGKU ILHAM THAQIF BIN TENGKU MOHD YUSOFF",
-      "L|WAN MUHAMMAD SYARIF BIN WAN ABDUL RAHIM",
-      "P|ZAFREEN ZULAIKHA BINTI AHMAD SOODIQ",
-      "P|ZARA ZULAIKHA BINTI MOHD ZAIDI"
-    ],
-    "5 INOVASI": [
-      "L|ABDUL MUHAIMIN BIN ABD GHAFFAR",
-      "P|AQEEFA NUR SAFFIYA BINTI MOHD ZULKEFLY",
-      "L|DANISH SYAFIZ BIN ZUNAIDI",
-      "L|MUHAMMAD ANIQ AZFAR BIN MUHAMAD AZROY",
-      "L|MUHAMMAD AQIL ASYRAAF BIN RIDHWAN",
-      "L|MUHAMMAD AQIL FAYYADH BIN RAMDI",
-      "L|MUHAMMAD DANIEL HAKIMI FITRI BIN ABDULLAH",
-      "L|MUHAMMAD HASBI NABIL BIN MOHD HANAFI",
-      "L|MUHAMMAD QHALIFF QASHRAN BIN MOHD NURFIRMAN",
-      "L|MUHAMMAD RAIHAN ABSYAR BIN MOHD RAZIF",
-      "L|MUHAMMAD SYAKIR SYAHMIE BIN RUSMI",
-      "L|MUHAMMAD TAUFIQ ASYRAF BIN MOHD TAMIZI",
-      "L|MUHAMMAD ZHARIFF NAQIF BIN ABD AZIZ",
-      "P|NAUREEN ALFINA BINTI MOHD RAZALI",
-      "P|NUR ARISYA SOFEA BINTI MOHAMAD HAFIZUDDIN",
-      "P|NUR AYU NABILA BINTI MOHD ANIZAN",
-      "P|NUR DINI NASUHA BINTI MOHD SAIFUDIN",
-      "P|NUR KHAIRUNNISA BINTI ZAWAWI",
-      "P|NUR SYAQIRA AMANI BINTI MOHD ZAINUN",
-      "P|NURSYAHIRAH QISMUNA BINTI MUHAMMAD LOKMAN",
-      "P|SITI NORNAZILAH BINTI ABD HAFIZ",
-      "P|SYAFIYA ZULAIKHA BINTI KAMAL",
-      "P|SYAKIRA BINTI MUHD SHAIFUL NIZAM",
-      "P|WAN FIZATUL ATELIA BINTI WAN RAMLI"
-    ],
-    "6 INSPIRASI": [
-      "L|ADAM RIFQI BIN ABDUL FATTAH",
-      "L|AHMAD RAZIQ BIN MAT ASRI",
-      "P|AISYAH AZ ZAHRA BINTI MOHD ZAIDI",
-      "L|AMZAR MUMTAAZ BIN AHMAD FITRI",
-      "P|ANNUR ZAHRAA INSYIRAH BINTI MOHD RIDUAN",
-      "P|AUNIE HUMAIRAH FIDAIY BINTI MOHD AZAHARUDIN",
-      "L|CHE MUHAMMAD HARRAZ BIN CIK MOHD ROSMADI",
-      "P|CHE NURAMALIN ASYKIN BINTI CHE MAT",
-      "L|CHE OMAR AKIL IRMAN BIN CHE ROSLEE",
-      "L|FIRASH HAZIQ BIN AB.GHAFAR",
-      "P|HANIS ALFINA BINTI MOHD SHUKRI",
-      "P|MARIA NAJMA BINTI MOHAMMAD NORHADI BARRY",
-      "L|MOHAMAD AQIL RIFQI BIN MOHAMAD RIZMIZAN",
-      "L|MOHAMMAD SYAFIQ IKHWAN BIN ABDUL MUIZ",
-      "L|MUHAMMAD ADAM IMRAN BIN AZMAN",
-      "L|MUHAMMAD AIDIL HAKIM BIN ABDUL HADI",
-      "L|MUHAMMAD AIMAN AR RAYYAN BIN ABDULLAH",
-      "L|MUHAMMAD AISY AFKAR BIN MUHAMAD AZROY",
-      "L|MUHAMMAD ANAS BIN MOHD SOLLEH",
-      "L|MUHAMMAD ANIQ FIRDAUS BIN MOHD SALLEHUDIN",
-      "L|MUHAMMAD AYSAR JIHADI BIN JAUHARI",
-      "L|MUHAMMAD HAMIDULLAH BIN MUHAMAD HANAFIAH",
-      "L|MUHAMMAD NOR HADI BIN ZARIMAN",
-      "L|MUHAMMAD TAUFIQ HAFIZUDDIN BIN ROZI",
-      "L|NIK MUHAMMAD HARITH BIN NIK MOHAMMAD HASRUL",
-      "L|NIK MUHAMMAD MIKHAIL BIN NIK MUHAMAD SALAM",
-      "L|NIK MUHAMMAD RASUL AIMAN BIN NIK MOHAMMAD",
-      "L|NIK MUHAMMAD UMAR BIN NIK HASMADI",
-      "P|NIK NUR RAISYA SAKINA BINTI NIK AHMAD FADLI",
-      "P|NIK YASMIN NADHIRA BINTI NIK MOHD HISHAMUDIN",
-      "P|NOR AIN AFRINA BINTI MOHD KHAIRUL AZMI",
-      "P|NUR ADIRA NADIA BINTI ABD RASHID",
-      "P|NUR AIN HAWANI BINTI MOHD ANIZAN",
-      "P|NUR AINNUR RAUDHAH BINTI MOHD ALIAS",
-      "P|NUR AMNI NASUHA BINTI ZULKIFLI",
-      "P|NUR AZALEA IZARA BINTI ZAINUDIN",
-      "P|NUR DAMIA HUMAIRA BINTI MOHD AZIZAN",
-      "P|NUR DHIA AMMARA BINTI RADZALI",
-      "P|NUR DHIA YASMIN BINTI MOHAMAD RIZWAN",
-      "P|NUR FIKHRIAH MAISARAH BINTI RASHID",
-      "L|NUR IMAN MUSTAQIM BIN KAMARUDIN",
-      "P|NUR IRDINA ZAHRA BINTI ABDUL RAHMAN",
-      "L|NUR MUHAMMAD BIN AHMAD FADHIL",
-      "P|NUR NAILA FARAFISYAH BINTI AHMAD ASROL HAKIMI",
-      "P|NUR QASEH QAISARA BINTI NOOR ZAIDI",
-      "P|NUR SUHADA NURUL AIN BINTI ZAIDI",
-      "P|NUR SYARAH AULIA BINTI SHAHRUL AMIN",
-      "P|NURAIN HAWANIE BINTI MUHAMAD FARHAN",
-      "P|NURIN ARISSA BINTI SUHAIDI",
-      "P|NURUL AIN ATHYRAH BINTI NIK MOHAMAD",
-      "P|NURUL NADIA BINTI MOHAMAD SYAMSUDIN",
-      "P|NURUL NAJIHAH SYAFIYAH BINTI MOHD AZUAN",
-      "P|NURUL RANIA UMAIRRA BINTI NORAZMAN",
-      "P|PUTERI EMMA HANNAH BINTI MOHD NOOR HUZAIFAH",
-      "P|PUTRI MAIZARA KHALISYA BINTI SABRI",
-      "P|PUTRI NUR ANIS BINTI MOHD SHABRE",
-      "P|QASEH NURSYAHIRRAH DHANIA BINTI MUHAMMAD SYAHIR",
-      "P|RAUQATUL AFIFAH BINTI NORDIN",
-      "P|TENGKU ALYA AMANI BINTI TENGKU AMRAN",
-      "P|TENGKU TASSNEM HUMAIRA BINTI TENGKU TASSRIQ HAFIZ"
-    ],
-    "6 ILTIZAM": [
-      "L|AHMAD FATIHUL HISHAM BIN AHMAD ISKANDAR FIRDAUS",
-      "P|DAMIA ZAHRA BINTI MAHADI",
-      "L|DANIAL FAHIIM BIN MOHD AIZUDDIN",
-      "L|FIRASH LUQMAN BIN MOHD FIRDAUS",
-      "L|MUHAMAD AQIF ARHAM BIN MUHAMAD AFANDI",
-      "L|MUHAMMAD AMMAR DARWISY BIN MOHD AHAZANORE",
-      "L|MUHAMMAD AMMAR ZIQRI BIN ZAMZURI",
-      "L|MUHAMMAD ATASH DANIEL DANISH BIN MOHAMAD AMIRUL ASYRAF",
-      "L|MUHAMMAD HASIF HAMKA BIN MOHD HAMKA",
-      "L|MUHAMMAD ILHAM AMJAD BIN EHSHAM",
-      "L|MUHAMMAD RAZIN HAZIQ BIN MOHAMMAD NOR FIRDKIE HAFERAN",
-      "L|MUHAMMAD SYAZWAN FARHAN BIN ZULKIFLI",
-      "P|NIK HAWA NURJANNAH BINTI NIK MOHD FARHAM",
-      "P|NIK NOUR LUTHFIA NISRINA BINTI NIK MOHD AZRAI HILMI",
-      "P|NUR AIN BALQIS BINTI GHANI",
-      "P|NUR FATHIYYA ZAFIRA BINTI MOHD ZAMRIZAL",
-      "P|NUR FATHIYYA ZAHIRA BINTI MOHD ZAMRIZAL",
-      "P|NUR FATIMA AISHAH BINTI ZUNAIRI",
-      "P|NUR HANIYS EYZARA BINTI AZAHAR",
-      "P|NURQASRINA BATRISYIA BINTI MUHAMMAD FIZHAL",
-      "P|NURUL SYAFIAH HUSNA BINTI MOHD SAMSURI",
-      "P|SU'AD AMANI BINTI MOHD KHUSYAIRIE"
-    ],
-    "6 INOVASI": [
-      "L|ABDUL AZIM IQHBAL BIN ABDULLAH",
-      "L|ABDUR RAHMAN BIN MOHD HANAFI",
-      "P|DHIA DAMIA BINTI ZAHID",
-      "L|KHAIRIN AISY ARYAN BIN MUHAMMAD KHAIRUL SYAHMI",
-      "L|MUHAMMAD ADAM AFIQ BIN CHE SIN",
-      "L|MUHAMMAD ADAM RAYKAL BIN YUSDI",
-      "L|MUHAMMAD AZAN MIKHAIL BIN ZAINAL",
-      "L|MUHAMMAD ELHAM BIN MAT SOTI",
-      "L|MUHAMMAD FARHAN NASRULLAH BIN MOHD FAIROLZANI",
-      "L|MUHAMMAD FARIS BIN MOHD SAHUDIN",
-      "L|MUHAMMAD FARIS BIN SULAIMAN",
-      "L|MUHAMMAD FARIS FUDAIL BIN SHAHRUL AZMI",
-      "L|MUHAMMAD FIRASH BIN ROSSIMI",
-      "L|MUHAMMAD HAFIY MIKAIL BIN ZAIFISHASRA",
-      "L|MUHAMMAD HARRAZ BIN HANAFI",
-      "L|MUHAMMAD NORSHAH AQIF BIN MOHD ALWI",
-      "L|MUHAMMAD UWAIS AL QARNI BIN HAIRI",
-      "P|NIK DAMIA QAISARA BINTI NIK ABDUL HAFIZ FIKRI",
-      "P|NOOR QASEH AISYA RISTINA BINTI MOHD RIDWAN",
-      "P|NOR FARHANAH NASRIYAH BINTI MOHD FAIROLZANI",
-      "P|NOR HUMAYRAI AULIYA BINTI MOHAMMAD ZAMRI",
-      "P|NUR AIREEN RANIA BINTI ROHAIZAD",
-      "P|NUR ARIANA INSYIRAH BINTI MOHD RAMLI",
-      "P|NUR INTAN KAISARA BINTI ABDULLAH",
-      "P|SYAFIA UMAIRAH BINTI KAMAL"
-    ],
-    "PPKI": [
-      "L|AHMAD NUR NAIMUDDIN BIN AHMAD ZAINI DAHLAN",
-      "L|MUHAMMAD NAIM AKBAR BIN ABDUL HADI",
-      "L|MUHAMMAD NASRIQ BIN ABD AZIZ",
-      "L|MUHAMMAD SYAHRIF DANIEL BIN MOHD SYAHRIL",
-      "P|NUR AIRA SYAKIRA BINTI SAZELI",
-      "P|NUR ANNISA FAIHA BINTI SHIRAZDIN",
-      "P|NUR HUMAIRA BINTI MOHD HANAFI"
-    ]
-  }
+  /* Admin yang boleh membuka Tetapan dan mengubah data.
+     WAJIB diisi. Jika kosong, semua guru menjadi admin. */
+  ADMIN: ["admin@moe-dl.edu.my"]
 };
 </script>
 
@@ -685,6 +165,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--tele);box-shadow:0 0 
 .who small{color:var(--muted);font-size:11.5px;word-break:break-all}
 .who button{flex:none;border:1px solid var(--line);background:#fff;color:var(--absen);border-radius:9px;padding:8px 11px;font:600 12.5px 'Instrument Sans',sans-serif;cursor:pointer}
 
+.amaran{background:#FEF6E7;border:1px solid #F3DFB5;color:#8A6117;padding:10px 12px;border-radius:11px;font-size:12.5px;margin-bottom:14px}
 .toast{position:fixed;left:50%;bottom:100px;transform:translate(-50%,14px);z-index:80;background:var(--ink);color:#fff;padding:12px 16px;border-radius:12px;font-size:13.5px;max-width:88%;opacity:0;pointer-events:none;transition:.22s;text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.bad{background:var(--absen)}.toast.good{background:var(--hadir)}
@@ -713,7 +194,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--tele);box-shadow:0 0 
     <div><p class="eyebrow">Kehadiran Murid Harian</p><h1>EZ-HADIR</h1></div>
     <div style="display:flex;gap:8px">
       <button class="gear" id="btnInstall" hidden>Pasang</button>
-      <button class="gear" id="btnSet">Tetapan</button>
+      <button class="gear" id="btnSet" hidden>Tetapan</button>
+      <button class="gear" id="btnKeluar">Keluar</button>
     </div>
   </div>
 </header>
@@ -744,7 +226,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--tele);box-shadow:0 0 
     <div class="roll" id="roll"></div>
     <div class="roll-tools">
       <button class="mini" id="btnReset">Semua hadir</button>
-      <button class="mini" id="btnEditRoll">Kemas kini senarai</button>
     </div>
   </section>
 
@@ -765,13 +246,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--tele);box-shadow:0 0 
 
 <div class="sheet" id="sheet">
   <div class="sheet-in">
-    <div class="sheet-top"><h2>Tetapan</h2><button class="x" id="btnClose">✕</button></div>
+    <div class="sheet-top"><h2>Tetapan Admin</h2><button class="x" id="btnClose">✕</button></div>
     <div class="tabs">
       <button class="tab on" data-pane="p1">Telegram</button>
       <button class="tab" data-pane="p2">Senarai murid</button>
     </div>
 
     <div class="pane on" id="p1">
+      <div class="amaran" id="amaranAdmin" hidden>Senarai <b>CONFIG.ADMIN</b> masih kosong — semua guru boleh ubah tetapan. Isi emel admin dalam <b>index.html</b>.</div>
       <div class="who" id="who" hidden>
         <img id="whoPic" alt="">
         <div><b id="whoName">—</b><small id="whoMail">—</small></div>
@@ -784,7 +266,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--tele);box-shadow:0 0 
         <input type="text" id="chat" placeholder="-1001234567890">
         <p class="hint">Tambah bot ke kumpulan, hantar satu mesej, kemudian tekan Semak sambungan.</p></div>
       <label class="check"><input type="checkbox" id="mono"> Hantar dalam blok monospace</label>
-      <button class="btn primary" id="btnTest" style="width:100%;margin-top:16px">Semak sambungan</button>
+      <button class="btn primary" id="btnSimpanTg" style="width:100%;margin-top:16px">Simpan ke Firebase</button>
+      <button class="mini" id="btnTest" style="width:100%;margin-top:8px">Semak sambungan</button>
+      <p class="hint">Token disimpan dalam Firestore, bukan dalam fail app.</p>
     </div>
 
     <div class="pane" id="p2">
@@ -795,9 +279,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--tele);box-shadow:0 0 
       <div class="field"><label for="senarai">Senarai murid — satu nama satu baris</label>
         <textarea id="senarai" spellcheck="false" placeholder="L|Ahmad Danial&#10;P|Nur Aisyah"></textarea>
         <p class="hint">Mula setiap baris dengan <b>L</b> (lelaki) atau <b>P</b> (perempuan), diikuti <b>|</b> dan nama.</p></div>
-      <button class="btn primary" id="btnApply" style="width:100%;margin-top:14px">Guna senarai ini</button>
-      <button class="mini" id="btnCode" style="width:100%;margin-top:8px">Salin kod untuk simpan kekal dalam fail</button>
-      <p class="hint">Senarai yang ditampal di sini hanya kekal untuk sesi ini. Untuk simpan kekal, salin kod di atas dan ganti bahagian <b>KELAS</b> dalam fail HTML.</p>
+      <button class="mini" id="btnApply" style="width:100%;margin-top:12px">Guna senarai ini (sementara)</button>
+      <button class="btn primary" id="btnSimpanKelas" style="width:100%;margin-top:8px">Simpan semua kelas ke Firebase</button>
+      <p class="hint">Simpan akan menggantikan keseluruhan senarai kelas dalam Firestore.</p>
     </div>
   </div>
 </div>
@@ -809,56 +293,80 @@ const $=id=>document.getElementById(id);
 const HARI=['AHAD','ISNIN','SELASA','RABU','KHAMIS','JUMAAT','SABTU'];
 const pad=n=>String(n).padStart(2,'0');
 
-let DB = JSON.parse(JSON.stringify(CONFIG.KELAS||{}));
-let kelasKini = Object.keys(DB)[0] || '';
-let absen = new Set();
+let DB={};                                   // { "5 ILTIZAM": ["L|Nama", ...] }
+let TG={botToken:'',chatId:'',mono:false};
+let kelasKini='', absen=new Set(), ADMIN=false;
 
-/* ---- parse "L|Nama" ---- */
 function parse(list){
   return (list||[]).map(s=>{
-    const m = String(s).trim().match(/^([LlPp])\s*[|,\-–:\s]\s*(.+)$/);
-    return m ? {j:m[1].toUpperCase(), n:m[2].trim()} : {j:'L', n:String(s).trim()};
+    const m=String(s).trim().match(/^([LlPp])\s*[|,\-–:\s]\s*(.+)$/);
+    return m?{j:m[1].toUpperCase(),n:m[2].trim()}:{j:'L',n:String(s).trim()};
   }).filter(o=>o.n);
 }
-const murid = ()=> parse(DB[kelasKini]);
+const murid=()=>parse(DB[kelasKini]);
+
+/* ---- antara muka untuk modul Firebase ---- */
+window.EZ={
+  buka(){ $('gate').hidden=true; },
+  tutup(){ $('gate').hidden=false; },
+  tunjukPengguna(u){
+    if(!u){ $('who').hidden=true; return; }
+    $('who').hidden=false;
+    $('whoName').textContent=u.displayName||'Guru';
+    $('whoMail').textContent=u.email||'';
+    if(u.photoURL) $('whoPic').src=u.photoURL;
+  },
+  jadikanAdmin(ya,tiadaSenarai){
+    ADMIN=ya; $('btnSet').hidden=!ya; $('amaranAdmin').hidden=!tiadaSenarai;
+  },
+  muatKelas(obj){
+    DB=obj||{};
+    const keys=Object.keys(DB);
+    if(!keys.includes(kelasKini)) kelasKini=keys.sort((a,b)=>a.localeCompare(b,'ms',{numeric:true}))[0]||'';
+    absen.clear(); drawKelas(); loadEditor(); render();
+  },
+  muatTelegram(t){
+    TG={botToken:t?.botToken||'',chatId:t?.chatId||'',mono:!!t?.mono};
+    $('token').value=TG.botToken; $('chat').value=TG.chatId; $('mono').checked=TG.mono;
+  },
+  ambilDB:()=>DB,
+  ambilTG:()=>({botToken:$('token').value.trim(),chatId:$('chat').value.trim(),mono:$('mono').checked}),
+  toast
+};
 
 function init(){
   const d=new Date();
   $('tarikh').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  $('token').value=CONFIG.BOT_TOKEN||''; $('chat').value=CONFIG.CHAT_ID||''; $('mono').checked=!!CONFIG.MONO;
-  drawKelas(); loadEditor(); render();
+  render();
 }
 function drawKelas(){
   const s=$('kelas'); s.innerHTML='';
-  Object.keys(DB).forEach(k=>{
+  Object.keys(DB).sort((a,b)=>a.localeCompare(b,'ms',{numeric:true})).forEach(k=>{
     const o=document.createElement('option'); o.value=k; o.textContent=k; s.appendChild(o);
   });
   s.value=kelasKini;
 }
 function loadEditor(){
-  $('namaKelas').value = kelasKini;
-  $('senarai').value = (DB[kelasKini]||[]).join('\n');
+  $('namaKelas').value=kelasKini;
+  $('senarai').value=(DB[kelasKini]||[]).join('\n');
 }
-
-/* ---- senarai murid ---- */
 function drawRoll(){
   const box=$('roll'), list=murid();
   box.innerHTML='';
   if(!list.length){
-    box.innerHTML='<div class="empty">Senarai murid masih kosong.<br>Buka Tetapan → Senarai murid untuk mengisinya.</div>';
+    box.innerHTML='<div class="empty">Senarai murid belum dimuatkan.<br>Hubungi admin sekolah untuk mengisinya.</div>';
     return;
   }
   list.forEach((m,i)=>{
     const row=document.createElement('div');
     row.className='pupil'+(absen.has(i)?' absent':'');
-    row.innerHTML=`<span class="no">${pad(i+1)}</span><span class="jn">${m.j}</span>
-      <span class="nm"></span><span class="st">${absen.has(i)?'Tidak hadir':'Hadir'}</span>`;
+    row.innerHTML=`<span class="no">${pad(i+1)}</span><span class="jn">${m.j}</span>`+
+      `<span class="nm"></span><span class="st">${absen.has(i)?'Tidak hadir':'Hadir'}</span>`;
     row.querySelector('.nm').textContent=m.n;
     row.addEventListener('click',()=>{ absen.has(i)?absen.delete(i):absen.add(i); render(); });
     box.appendChild(row);
   });
 }
-
 function kira(){
   const list=murid();
   const lj=list.filter(m=>m.j==='L').length, pj=list.length-lj;
@@ -866,7 +374,6 @@ function kira(){
   list.forEach((m,i)=>{ if(!absen.has(i)){ m.j==='L'?lh++:ph++; } });
   return {list,lj,pj,lh,ph,jumlah:list.length,hadir:lh+ph,tak:absen.size};
 }
-
 function buildMsg(){
   const k=kira();
   const d=$('tarikh').value?new Date($('tarikh').value+'T00:00:00'):new Date();
@@ -883,10 +390,9 @@ function buildMsg(){
   m+=`JUMLAH HADIR : ${pad(k.hadir)}/${pad(k.jumlah)}\n\n`;
   m+=`MURID TIDAK HADIR\n`;
   m+=`*****************************\n`;
-  m+= nama.length ? nama.map((s,i)=>`${i+1}. ${s}`).join('\n') : 'TIADA — SEMUA HADIR';
+  m+= nama.length?nama.map((s,i)=>`${i+1}. ${s}`).join('\n'):'TIADA — SEMUA HADIR';
   return m;
 }
-
 function render(){
   const k=kira();
   const d=$('tarikh').value?new Date($('tarikh').value+'T00:00:00'):new Date();
@@ -900,14 +406,12 @@ function render(){
   const t=new Date(); $('stampTime').textContent=`${pad(t.getHours())}:${pad(t.getMinutes())}`;
 }
 
-/* ---- kawalan ---- */
 $('kelas').addEventListener('change',e=>{ kelasKini=e.target.value; absen.clear(); loadEditor(); render(); });
 $('tarikh').addEventListener('input',render);
 $('btnReset').addEventListener('click',()=>{ absen.clear(); render(); toast('Semua murid ditanda hadir.'); });
-$('btnEditRoll').addEventListener('click',()=>{ openSheet('p2'); });
 
-/* ---- sheet ---- */
 function openSheet(pane='p1'){
+  if(!ADMIN) return toast('Tetapan hanya untuk admin sekolah.','bad');
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.pane===pane));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===pane));
   $('sheet').classList.add('open');
@@ -917,7 +421,7 @@ $('btnClose').addEventListener('click',()=>$('sheet').classList.remove('open'));
 $('sheet').addEventListener('click',e=>{ if(e.target.id==='sheet') $('sheet').classList.remove('open'); });
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>openSheet(t.dataset.pane)));
 
-/* ---- editor senarai ---- */
+/* ---- editor senarai (admin) ---- */
 $('btnApply').addEventListener('click',()=>{
   const nama=$('namaKelas').value.trim();
   const baris=$('senarai').value.split('\n').map(s=>s.trim()).filter(Boolean);
@@ -925,12 +429,11 @@ $('btnApply').addEventListener('click',()=>{
   if(!baris.length) return toast('Senarai murid kosong.','bad');
   if(nama!==kelasKini) delete DB[kelasKini];
   DB[nama]=baris; kelasKini=nama; absen.clear();
-  drawKelas(); render(); $('sheet').classList.remove('open');
-  toast(`${baris.length} murid dimuatkan untuk ${nama}.`,'good');
+  drawKelas(); render();
+  toast(`${baris.length} murid dimuatkan. Tekan Simpan untuk kekalkan.`,'good');
 });
-/* ---- import fail Excel (format eksport APDM/KPM) ---- */
 $('btnImport').addEventListener('click',()=>{
-  if(typeof XLSX==='undefined') return toast('Pustaka Excel tidak dimuatkan. Sambung internet dan muat semula.','bad');
+  if(typeof XLSX==='undefined') return toast('Pustaka Excel tidak dimuatkan. Sambung internet.','bad');
   $('fileXls').click();
 });
 $('fileXls').addEventListener('change',async e=>{
@@ -939,16 +442,12 @@ $('fileXls').addEventListener('change',async e=>{
     const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
     const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
     const up=v=>String(v).toUpperCase().trim();
-
     let hdr=-1;
-    for(let i=0;i<Math.min(rows.length,30);i++){
-      if(rows[i].some(c=>up(c)==='NAMA')){ hdr=i; break; }
-    }
-    if(hdr<0) throw new Error('Lajur NAMA tidak dijumpai dalam fail.');
+    for(let i=0;i<Math.min(rows.length,30);i++) if(rows[i].some(c=>up(c)==='NAMA')){ hdr=i; break; }
+    if(hdr<0) throw new Error('Lajur NAMA tidak dijumpai.');
     const head=rows[hdr].map(up);
     const iNama=head.indexOf('NAMA');
-    let iKelas=head.findIndex(h=>h.includes('KELAS'));
-
+    const iKelas=head.findIndex(h=>h.includes('KELAS'));
     const bank={};
     for(let i=hdr+1;i<rows.length;i++){
       const nama=String(rows[i][iNama]||'').trim();
@@ -961,32 +460,23 @@ $('fileXls').addEventListener('change',async e=>{
     const keys=Object.keys(bank);
     if(!keys.length) throw new Error('Tiada nama murid dijumpai.');
     keys.forEach(k=>bank[k].sort((a,b)=>a.slice(2).localeCompare(b.slice(2))));
-
-    DB=bank; kelasKini=keys[0]; absen.clear();
+    DB=bank; kelasKini=keys.sort((a,b)=>a.localeCompare(b,'ms',{numeric:true}))[0]; absen.clear();
     drawKelas(); loadEditor(); render();
-    toast(`${keys.length} kelas, ${Object.values(bank).flat().length} murid dimuatkan.`,'good');
+    toast(`${keys.length} kelas, ${Object.values(bank).flat().length} murid. Tekan Simpan ke Firebase.`,'good');
   }catch(err){ toast('Gagal baca fail: '+err.message,'bad'); }
   e.target.value='';
 });
 
-$('btnCode').addEventListener('click',async()=>{
-  const kod='KELAS: {\n'+Object.keys(DB).map(k=>
-    `    ${JSON.stringify(k)}: [\n`+DB[k].map(s=>`      ${JSON.stringify(s)}`).join(',\n')+'\n    ]'
-  ).join(',\n')+'\n  }';
-  await salin(kod); toast('Kod disalin. Tampal ganti bahagian KELAS dalam fail.','good');
-});
-
-/* ---- toast ---- */
 let tId;
 function toast(msg,kind=''){
   const t=$('toast'); t.textContent=msg; t.className='toast show '+kind;
-  clearTimeout(tId); tId=setTimeout(()=>t.className='toast '+kind,3200);
+  clearTimeout(tId); tId=setTimeout(()=>t.className='toast '+kind,3600);
 }
 
 /* ---- telegram ---- */
-async function tg(method,body){
-  const token=$('token').value.trim();
-  if(!token) throw new Error('Bot token belum diisi. Buka Tetapan.');
+async function tg(method,body,tokenPaksa){
+  const token=(tokenPaksa||TG.botToken||'').trim();
+  if(!token) throw new Error('Bot token belum ditetapkan oleh admin.');
   const r=await fetch(`https://api.telegram.org/bot${token}/${method}`,{
     method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});
   const j=await r.json();
@@ -995,28 +485,28 @@ async function tg(method,body){
 }
 $('btnTest').addEventListener('click',async e=>{
   const b=e.target; b.disabled=true; b.textContent='Menyemak…';
+  const tok=$('token').value.trim(), ch=$('chat').value.trim();
   try{
-    const me=await tg('getMe');
-    await tg('sendMessage',{chat_id:$('chat').value.trim(),text:`✅ Sambungan berjaya. Bot @${me.username} sedia digunakan.`});
+    const me=await tg('getMe',{},tok);
+    await tg('sendMessage',{chat_id:ch,text:`✅ Sambungan berjaya. Bot @${me.username} sedia digunakan.`},tok);
     toast('Sambungan berjaya. Semak kumpulan Telegram.','good');
   }catch(err){ toast(err.message,'bad'); }
   b.disabled=false; b.textContent='Semak sambungan';
 });
 $('btnSend').addEventListener('click',async()=>{
-  const chat=$('chat').value.trim();
-  if(!chat){ openSheet('p1'); return toast('Isi Chat ID kumpulan dahulu.','bad'); }
+  if(!TG.chatId) return toast('Chat ID belum ditetapkan oleh admin.','bad');
+  if(!kira().jumlah) return toast('Tiada murid dalam kelas ini.','bad');
   const b=$('btnSend'); b.disabled=true; b.textContent='Menghantar…';
   const teks=buildMsg();
   try{
-    await tg('sendMessage', $('mono').checked
-      ? {chat_id:chat,text:'<pre>'+teks.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</pre>',parse_mode:'HTML'}
-      : {chat_id:chat,text:teks});
+    await tg('sendMessage', TG.mono
+      ? {chat_id:TG.chatId,text:'<pre>'+teks.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</pre>',parse_mode:'HTML'}
+      : {chat_id:TG.chatId,text:teks});
     toast('Laporan dihantar ke Telegram.','good');
   }catch(err){ toast(err.message,'bad'); }
   b.disabled=false; b.textContent='Hantar ke Telegram';
 });
 
-/* ---- salin ---- */
 async function salin(teks){
   try{ await navigator.clipboard.writeText(teks); }
   catch{
@@ -1027,143 +517,190 @@ async function salin(teks){
 $('btnCopy').addEventListener('click',async()=>{ await salin(buildMsg()); toast('Teks disalin.','good'); });
 $('btnWa').addEventListener('click',()=>window.open('https://wa.me/?text='+encodeURIComponent(buildMsg()),'_blank'));
 
-init();
-
 /* ---- pemasangan PWA ---- */
-let promptPasang = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  promptPasang = e;
-  $('btnInstall').hidden = false;
-});
-$('btnInstall').addEventListener('click', async () => {
-  if(!promptPasang){
-    return toast('Buka menu pelayar dan pilih “Tambah ke skrin utama”.');
-  }
+let promptPasang=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); promptPasang=e; $('btnInstall').hidden=false; });
+$('btnInstall').addEventListener('click',async()=>{
+  if(!promptPasang) return toast('Buka menu pelayar dan pilih “Tambah ke skrin utama”.');
   promptPasang.prompt();
-  const { outcome } = await promptPasang.userChoice;
-  promptPasang = null;
-  $('btnInstall').hidden = true;
-  if(outcome === 'accepted') toast('App dipasang pada skrin utama.','good');
+  const {outcome}=await promptPasang.userChoice;
+  promptPasang=null; $('btnInstall').hidden=true;
+  if(outcome==='accepted') toast('App dipasang pada skrin utama.','good');
 });
-window.addEventListener('appinstalled', () => {
-  $('btnInstall').hidden = true;
-  toast('App dipasang pada skrin utama.','good');
-});
-
-/* iOS tiada beforeinstallprompt — tunjuk butang dengan panduan manual */
-const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-const berdiri = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-if(iOS && !berdiri) $('btnInstall').hidden = false;
+window.addEventListener('appinstalled',()=>{ $('btnInstall').hidden=true; });
+const iOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+const berdiri=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+if(iOS&&!berdiri) $('btnInstall').hidden=false;
 
 /* ---- service worker ---- */
 if('serviceWorker' in navigator){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').then(reg => {
-      reg.addEventListener('updatefound', () => {
-        const baru = reg.installing;
-        baru.addEventListener('statechange', () => {
-          if(baru.state === 'installed' && navigator.serviceWorker.controller){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      reg.addEventListener('updatefound',()=>{
+        const baru=reg.installing;
+        baru.addEventListener('statechange',()=>{
+          if(baru.state==='installed'&&navigator.serviceWorker.controller)
             toast('Versi baharu tersedia. Tutup dan buka semula app.');
-          }
         });
       });
     }).catch(()=>{});
   });
 }
 
-/* ---- pintu masuk: dipanggil oleh modul log masuk di bawah ---- */
-window.EZ = {
-  buka(){ $('gate').hidden = true; },
-  tunjukPengguna(u){
-    if(!u){ $('who').hidden = true; return; }
-    $('who').hidden = false;
-    $('whoName').textContent = u.displayName || 'Guru';
-    $('whoMail').textContent = u.email || '';
-    if(u.photoURL) $('whoPic').src = u.photoURL;
-  },
-  toast
-};
+init();
+
 </script>
 
 <script type="module">
 /* ══════════════════════════════════════════════════════════════
-   LOG MASUK GOOGLE
-   Tanpa tetapan Firebase, app terbuka kepada sesiapa (mod ujian).
+   LOG MASUK GOOGLE + DATA FIRESTORE
+   Senarai murid dan token Telegram diambil dari Firestore.
+   Hanya emel dalam CONFIG.ADMIN boleh menulis (dikuatkuasakan
+   sekali lagi oleh firestore.rules di pihak pelayan).
    ══════════════════════════════════════════════════════════════ */
 const gate=document.getElementById('gate'), err=document.getElementById('gateErr'),
       note=document.getElementById('gateNote'), btn=document.getElementById('btnGoogle');
 
-if(!CONFIG.FIREBASE || !CONFIG.FIREBASE.apiKey){
-  window.EZ.buka();
-  console.warn('EZ-HADIR: log masuk tidak diaktifkan. Isi CONFIG.FIREBASE untuk mengunci app.');
-} else {
-  const [{ initializeApp }, auth] = await Promise.all([
-    import('https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js'),
-    import('https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js')
-  ]);
-  const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
-          getRedirectResult, onAuthStateChanged, signOut, setPersistence,
-          browserLocalPersistence } = auth;
+const V='https://www.gstatic.com/firebasejs/11.0.2/';
+const [{initializeApp}, A, F] = await Promise.all([
+  import(V+'firebase-app.js'), import(V+'firebase-auth.js'), import(V+'firebase-firestore.js')
+]);
 
-  const app = initializeApp(CONFIG.FIREBASE);
-  const A = getAuth(app);
-  await setPersistence(A, browserLocalPersistence).catch(()=>{});
-  const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt:'select_account' });
+const app=initializeApp(CONFIG.FIREBASE);
+const auth=A.getAuth(app);
+await A.setPersistence(auth,A.browserLocalPersistence).catch(()=>{});
 
-  const domain = (CONFIG.AKSES?.domain||[]).map(d=>d.toLowerCase());
-  const emel   = (CONFIG.AKSES?.emel||[]).map(e=>e.toLowerCase());
-  const dibenarkan = e => {
-    e = (e||'').toLowerCase();
-    if(!domain.length && !emel.length) return true;
-    return emel.includes(e) || domain.some(d => e.endsWith('@'+d));
-  };
-  note.textContent = domain.length
-    ? 'Hanya akaun ' + domain.map(d=>'@'+d).join(' atau ') + ' dibenarkan.'
-    : 'Hanya akaun yang disenaraikan oleh admin dibenarkan.';
+let fs;
+try{
+  fs=F.initializeFirestore(app,{localCache:F.persistentLocalCache({tabManager:F.persistentMultipleTabManager()})});
+}catch{ fs=F.getFirestore(app); }
 
-  const gagal = m => { err.textContent = m; btn.disabled = false; };
+const provider=new A.GoogleAuthProvider();
+provider.setCustomParameters({prompt:'select_account'});
 
-  await getRedirectResult(A).catch(e => gagal(mesej(e)));
+const domain=(CONFIG.AKSES?.domain||[]).map(d=>d.toLowerCase()).filter(Boolean);
+const emel=(CONFIG.AKSES?.emel||[]).map(e=>e.toLowerCase()).filter(Boolean);
+const admins=(CONFIG.ADMIN||[]).map(e=>e.toLowerCase()).filter(Boolean);
 
-  onAuthStateChanged(A, async u => {
-    if(!u){ gate.hidden = false; btn.disabled = false; window.EZ.tunjukPengguna(null); return; }
-    if(!dibenarkan(u.email)){
-      await signOut(A);
-      gagal('Akaun ' + u.email + ' tiada kebenaran. Guna akaun sekolah anda.');
-      return;
-    }
-    window.EZ.tunjukPengguna(u);
-    window.EZ.buka();
-    err.textContent = '';
-  });
+const dibenarkan=e=>{
+  e=(e||'').toLowerCase();
+  if(!domain.length&&!emel.length) return true;
+  return emel.includes(e)||domain.some(d=>e.endsWith('@'+d));
+};
+const isAdmin=e=>!admins.length||admins.includes((e||'').toLowerCase());
 
-  btn.addEventListener('click', async () => {
-    btn.disabled = true; err.textContent = '';
-    try{ await signInWithPopup(A, provider); }
-    catch(e){
-      const c = e.code || '';
-      if(c.includes('popup') || c.includes('operation-not-supported')){
-        try{ await signInWithRedirect(A, provider); } catch(e2){ gagal(mesej(e2)); }
-      } else gagal(mesej(e));
-    }
-  });
+note.textContent = domain.length
+  ? 'Hanya akaun '+domain.map(d=>'@'+d).join(' atau ')+' dibenarkan.'
+  : 'Hanya akaun yang disenaraikan oleh admin dibenarkan.';
 
-  document.getElementById('btnOut').addEventListener('click', async () => {
-    await signOut(A);
-    document.getElementById('sheet').classList.remove('open');
-    gate.hidden = false;
-  });
+const gagal=m=>{ err.textContent=m; btn.disabled=false; };
+const slug=s=>s.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,120)||'kelas';
 
-  function mesej(e){
-    const c = e?.code || '';
-    if(c.includes('unauthorized-domain')) return 'Domain laman ini belum didaftarkan dalam Firebase → Authentication → Settings → Authorized domains.';
-    if(c.includes('network')) return 'Tiada sambungan internet.';
-    if(c.includes('cancelled') || c.includes('closed-by-user')) return '';
-    return 'Log masuk gagal: ' + (e?.message || c);
+await A.getRedirectResult(auth).catch(e=>gagal(mesej(e)));
+
+A.onAuthStateChanged(auth, async u=>{
+  if(!u){
+    window.EZ.tutup(); btn.disabled=false;
+    window.EZ.tunjukPengguna(null); window.EZ.jadikanAdmin(false,false);
+    return;
   }
+  if(!dibenarkan(u.email)){
+    await A.signOut(auth);
+    gagal('Akaun '+u.email+' tiada kebenaran. Sila guna akaun sekolah anda.');
+    return;
+  }
+  window.EZ.tunjukPengguna(u);
+  window.EZ.jadikanAdmin(isAdmin(u.email), !admins.length);
+  window.EZ.buka();
+  err.textContent='';
+  await muatData();
+});
+
+async function muatData(){
+  try{
+    const snap=await F.getDocs(F.collection(fs,'kelas'));
+    const obj={};
+    snap.forEach(d=>{ const v=d.data(); if(v?.nama&&Array.isArray(v.murid)) obj[v.nama]=v.murid; });
+    window.EZ.muatKelas(obj);
+    if(!snap.size) window.EZ.toast('Senarai kelas masih kosong dalam Firebase.');
+  }catch(e){ window.EZ.toast('Gagal muat senarai kelas: '+ringkas(e),'bad'); }
+  try{
+    const d=await F.getDoc(F.doc(fs,'tetapan','telegram'));
+    window.EZ.muatTelegram(d.exists()?d.data():null);
+  }catch(e){ window.EZ.toast('Gagal muat tetapan Telegram: '+ringkas(e),'bad'); }
 }
+
+/* ---- simpan: admin sahaja ---- */
+document.getElementById('btnSimpanTg').addEventListener('click',async e=>{
+  const b=e.target; b.disabled=true; b.textContent='Menyimpan…';
+  try{
+    const t=window.EZ.ambilTG();
+    await F.setDoc(F.doc(fs,'tetapan','telegram'),
+      {...t, dikemas:F.serverTimestamp(), oleh:auth.currentUser?.email||''});
+    window.EZ.muatTelegram(t);
+    window.EZ.toast('Tetapan Telegram disimpan.','good');
+  }catch(e2){ window.EZ.toast('Gagal simpan: '+ringkas(e2),'bad'); }
+  b.disabled=false; b.textContent='Simpan ke Firebase';
+});
+
+document.getElementById('btnSimpanKelas').addEventListener('click',async e=>{
+  const DB=window.EZ.ambilDB();
+  const keys=Object.keys(DB);
+  if(!keys.length) return window.EZ.toast('Tiada kelas untuk disimpan.','bad');
+  if(!confirm(`Simpan ${keys.length} kelas ke Firebase? Senarai sedia ada akan diganti.`)) return;
+  const b=e.target; b.disabled=true; b.textContent='Menyimpan…';
+  try{
+    const sedia=await F.getDocs(F.collection(fs,'kelas'));
+    const baru=new Set(keys.map(slug));
+    let batch=F.writeBatch(fs), n=0;
+    const komit=async()=>{ if(n){ await batch.commit(); batch=F.writeBatch(fs); n=0; } };
+    for(const k of keys){
+      batch.set(F.doc(fs,'kelas',slug(k)),{
+        nama:k, murid:DB[k], bil:DB[k].length,
+        dikemas:F.serverTimestamp(), oleh:auth.currentUser?.email||''
+      });
+      if(++n>=400) await komit();
+    }
+    sedia.forEach(d=>{ if(!baru.has(d.id)){ batch.delete(d.ref); n++; } });
+    await komit();
+    window.EZ.toast(`${keys.length} kelas disimpan ke Firebase.`,'good');
+  }catch(e2){ window.EZ.toast('Gagal simpan: '+ringkas(e2),'bad'); }
+  b.disabled=false; b.textContent='Simpan semua kelas ke Firebase';
+});
+
+/* ---- log masuk / keluar ---- */
+btn.addEventListener('click',async()=>{
+  btn.disabled=true; err.textContent='';
+  try{ await A.signInWithPopup(auth,provider); }
+  catch(e){
+    const c=e.code||'';
+    if(c.includes('popup')||c.includes('operation-not-supported')){
+      try{ await A.signInWithRedirect(auth,provider); }catch(e2){ gagal(mesej(e2)); }
+    } else gagal(mesej(e));
+  }
+});
+document.getElementById('btnOut').addEventListener('click',async()=>{
+  await A.signOut(auth);
+  document.getElementById('sheet').classList.remove('open');
+});
+document.getElementById('btnKeluar').addEventListener('click',async()=>{
+  if(confirm('Log keluar dari EZ-HADIR?')) await A.signOut(auth);
+});
+
+function ringkas(e){
+  const c=e?.code||'';
+  if(c.includes('permission-denied')) return 'tiada kebenaran (semak Firestore rules atau status admin)';
+  if(c.includes('unavailable')) return 'tiada sambungan internet';
+  return e?.message||c||'ralat tidak diketahui';
+}
+function mesej(e){
+  const c=e?.code||'';
+  if(c.includes('unauthorized-domain')) return 'Domain laman ini belum didaftarkan dalam Firebase → Authentication → Settings → Authorized domains.';
+  if(c.includes('network')) return 'Tiada sambungan internet.';
+  if(c.includes('cancelled')||c.includes('closed-by-user')) return '';
+  return 'Log masuk gagal: '+(e?.message||c);
+}
+
 </script>
 </body>
 </html>
