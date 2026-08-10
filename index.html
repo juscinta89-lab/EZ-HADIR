@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12233A">
+<title>EZ-HADIR — Kehadiran Murid</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EZ-HADIR">
+<meta name="description" content="Rekod kehadiran murid dan hantar laporan harian ke kumpulan Telegram sekolah.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   BAHAGIAN ADMIN — edit di sini sahaja.
+   Format nama:  "L|Nama Murid"  (L = lelaki, P = perempuan)
+   Boleh tambah seberapa banyak kelas.
+   ══════════════════════════════════════════════════════════════ */
+const CONFIG = {
+  BOT_TOKEN: "",              // dari @BotFather
+  CHAT_ID:   "",              // cth "-1001234567890" (kumpulan sekolah)
+  MONO:      false,           // true = hantar dalam blok monospace
+
+  /* ── Log masuk Google ────────────────────────────────────────
+     Biar apiKey kosong = sesiapa boleh guna (mod ujian).
+     Isi tetapan Firebase untuk kunci app kepada guru sekolah sahaja. */
+  FIREBASE: {
+    apiKey:     "",
+    authDomain: "",           // cth "ez-hadir.firebaseapp.com"
+    projectId:  ""
+  },
+  AKSES: {
+    domain: ["moe-dl.edu.my"],  // domain Google yang dibenarkan
+    emel:   []                  // emel individu tambahan, cth "cikgu@gmail.com"
+  },
+
+  KELAS: {
+    "PRA PRASEKOLAH INDAH": [
+      "P|AISY ERYNA QAIREEN BINTI MUHAMMAD ZAHARI",
+      "L|AMEER LUTH HAMZAH BIN ABDUL MUKHRIZ",
+      "P|CIK NUR ARDELIEYA ASYIFFA BINTI CHE ROSLEE",
+      "L|MOHAMAD HARRAZ NAUFAL BIN MOHAMAD NAZRI",
+      "L|MUHAMAD FARIS FATTAH BIN RUSMI",
+      "L|MUHAMMAD AALI RIZFA BIN ABDULLAH",
+      "L|MUHAMMAD ADAM RIZQI BIN MOHD YUSRI SHAHIDAN",
+      "L|MUHAMMAD HARRAZ AQMAR BIN SULAIMAN",
+      "L|MUHAMMAD NOAH AFFAN BIN MOHD FAIRUZ",
+      "L|MUHAMMAD SHAHIR AMMAR BIN SHAHRIL",
+      "L|MUHAMMAD WALIYYI MURSYID BIN MOHD SOLLEH",
+      "L|NIK MUHAMMAD IFFAT FIRDAUS BIN NIK NOR HISHAMUL HILMI",
+      "P|NOR HANAN IRDINA BINTI NORHAFIZA",
+      "P|NUR ANNISA SYIFA BINTI MOHAMAD ZULNAZRI",
+      "P|NUR ANNISA UFAIRAH BINTI NOOR ZAMZURI",
+      "P|NUR ARIANA QALESYA BINTI MOHD RAZIF",
+      "P|NUR HANA MARISSA BINTI MOHD FARIQ",
+      "P|NUR KAYYISA SYAZWI BINTI MOHD AZILLAH",
+      "P|NUR TASNIM HUMAIRA BINTI ABDUL RAHMAN",
+      "P|NUR ZAYANA ZAFIEYAA BINTI ZAKWAN",
+      "P|NURHAJAR AAFIYAH BINTI MUHAMMAD FIZHAL",
+      "P|NURUL HANANIA BINTI ASMADI",
+      "P|PUTERI NUR CHANTIQ HANANIA BINTI MUHAMMAD RASUL",
+      "L|RAYYAN MIKHAIL BIN ROSLIN",
+      "P|WAN MARYAM RAIHANAH BINTI WAN MOHD RIZAL"
+    ]
+  }
+};
+</script>
+
+<style>
+:root{
+  --ink:#12233A;--ink-2:#2C3E56;--paper:#E9EDF2;--card:#FFF;--line:#D3DBE5;--muted:#6B7A8D;
+  --hadir:#1B7A5A;--hadir-soft:#E4F2EC;--absen:#B3352B;--absen-soft:#FBE9E7;--tele:#2A7FC4;--r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Instrument Sans',system-ui,-apple-system,sans-serif;color:var(--ink);
+  background:var(--paper);
+  background-image:repeating-linear-gradient(to bottom,transparent 0 31px,rgba(18,35,58,.055) 31px 32px);
+  font-size:16px;line-height:1.45;padding-bottom:104px;
+}
+.wrap{max-width:520px;margin:0 auto;padding:0 16px}
+header{background:var(--ink);color:#fff;padding:calc(env(safe-area-inset-top) + 18px) 16px 18px;margin-bottom:18px;border-bottom:3px solid var(--absen)}
+.head-in{max-width:520px;margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:#9DB4CE;margin:0 0 4px}
+h1{font-family:'Bricolage Grotesque','Instrument Sans',sans-serif;font-weight:800;font-size:29px;line-height:1;letter-spacing:-.02em;margin:0}
+.gear{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:11px;padding:9px 13px;font:600 13px 'Instrument Sans',sans-serif;cursor:pointer;flex:none}
+.gear:hover{background:rgba(255,255,255,.18)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:0 1px 0 rgba(18,35,58,.04)}
+.card-title{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.card-title::after{content:"";flex:1;height:1px;background:var(--line)}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
+input[type=text],input[type=date],input[type=password],select,textarea{
+  width:100%;font-family:inherit;font-size:16px;color:var(--ink);background:#F7F9FB;
+  border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none}
+textarea{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;min-height:190px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--tele);box-shadow:0 0 0 3px rgba(42,127,196,.16);background:#fff}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field+.field{margin-top:12px}
+.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
+.day-chip{display:inline-block;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;background:var(--ink);color:#fff;padding:4px 10px;border-radius:6px}
+
+/* ringkasan */
+.tots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tot{border-radius:11px;padding:9px 8px;text-align:center;border:1px solid var(--line);background:#F7F9FB}
+.tot small{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tot b{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;font-weight:700}
+.tot.ok{background:var(--hadir-soft);border-color:#BFE0D3}.tot.ok b{color:var(--hadir)}
+.tot.no{background:var(--absen-soft);border-color:#F0CFCA}.tot.no b{color:var(--absen)}
+
+/* senarai murid */
+.roll{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pupil{display:flex;align-items:center;gap:10px;padding:9px 11px;border-bottom:1px solid var(--line);cursor:pointer;background:#fff}
+.pupil:last-child{border-bottom:0}
+.pupil:active{background:#F2F5F8}
+.pupil .no{width:22px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);flex:none}
+.pupil .jn{width:20px;height:20px;flex:none;border-radius:6px;font:700 10px 'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;background:#EAF0F6;color:var(--ink-2)}
+.pupil .nm{flex:1;font-size:14.5px;font-weight:500;line-height:1.25}
+.pupil .st{flex:none;font:600 11px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:20px;background:var(--hadir-soft);color:var(--hadir);border:1px solid #BFE0D3}
+.pupil.absent{background:var(--absen-soft)}
+.pupil.absent .nm{color:var(--absen);text-decoration:line-through;text-decoration-thickness:1px}
+.pupil.absent .st{background:var(--absen);color:#fff;border-color:var(--absen)}
+.roll-tools{display:flex;gap:8px;margin-top:10px}
+.mini{flex:1;padding:9px;border:1px solid var(--line);background:#F7F9FB;border-radius:10px;font:600 13px 'Instrument Sans',sans-serif;color:var(--ink-2);cursor:pointer}
+.mini:hover{border-color:var(--tele);color:var(--tele)}
+.empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:13.5px}
+
+/* pratonton */
+.chat{background:#CBD8E4;background-image:radial-gradient(circle at 20% 15%,rgba(255,255,255,.5) 0,transparent 45%),radial-gradient(circle at 80% 80%,rgba(18,35,58,.07) 0,transparent 40%);border:1px solid var(--line);border-radius:var(--r);padding:16px 14px 14px;margin-bottom:14px}
+.chat-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#4A5F78;margin:0 0 10px}
+.bubble{position:relative;background:#fff;border-radius:14px 14px 14px 4px;padding:13px 14px;box-shadow:0 2px 6px rgba(18,35,58,.14)}
+.bubble::after{content:"";position:absolute;left:-6px;bottom:0;width:12px;height:12px;background:#fff;clip-path:polygon(100% 0,100% 100%,0 100%)}
+.bubble pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+.stamp{display:flex;justify-content:flex-end;align-items:center;gap:5px;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#4A5F78}
+
+/* bar */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(233,237,242,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:10px 16px calc(env(safe-area-inset-bottom) + 10px)}
+.bar-in{max-width:520px;margin:0 auto;display:flex;gap:8px}
+.btn{border:0;border-radius:12px;font-family:inherit;font-weight:600;font-size:15px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn.primary{flex:1;background:var(--tele);color:#fff;box-shadow:0 2px 0 #1F639C}
+.btn.primary:active{transform:translateY(1px);box-shadow:0 1px 0 #1F639C}
+.btn.primary[disabled]{background:#9FB3C6;box-shadow:none;cursor:not-allowed}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);flex:none;padding:14px 15px}
+
+/* sheet */
+.sheet{position:fixed;inset:0;z-index:60;display:none;background:rgba(18,35,58,.45);align-items:flex-end;justify-content:center}
+.sheet.open{display:flex}
+.sheet-in{background:var(--card);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom) + 18px);max-height:90vh;overflow:auto}
+.sheet-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sheet-top h2{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;margin:0}
+.x{width:34px;height:38px;flex:none;border:1px solid var(--line);background:#F7F9FB;border-radius:9px;color:var(--muted);font-size:16px;cursor:pointer;font-family:inherit}
+.tabs{display:flex;gap:6px;background:#F2F5F8;padding:4px;border-radius:12px;margin-bottom:16px}
+.tab{flex:1;padding:9px;border:0;background:transparent;border-radius:9px;font:600 13.5px 'Instrument Sans',sans-serif;color:var(--muted);cursor:pointer}
+.tab.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(18,35,58,.12)}
+.pane{display:none}.pane.on{display:block}
+.check{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:14px;color:var(--ink-2)}
+.check input{width:19px;height:19px;accent-color:var(--tele)}
+
+/* skrin log masuk */
+.gate{
+  position:fixed;inset:0;z-index:100;background:var(--ink);
+  display:flex;align-items:center;justify-content:center;padding:28px;
+  background-image:radial-gradient(circle at 50% 18%,rgba(9,130,248,.35) 0,transparent 58%)
+}
+.gate[hidden]{display:none}
+.gate-in{max-width:340px;width:100%;text-align:center;color:#fff}
+.gate-in img{width:104px;height:104px;border-radius:24px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.gate-in h2{font-family:'Bricolage Grotesque',sans-serif;font-size:27px;margin:18px 0 6px;letter-spacing:-.02em}
+.gate-in p{color:#A9BED6;font-size:14px;margin:0 0 22px;line-height:1.5}
+.g-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:#fff;color:#1F2937;border:0;border-radius:12px;padding:14px;
+  font:600 15px 'Instrument Sans',sans-serif;cursor:pointer
+}
+.g-btn:active{transform:translateY(1px)}
+.g-btn[disabled]{opacity:.6;cursor:progress}
+.gate-err{color:#FFB4AC;font-size:13px;min-height:18px;margin-top:14px}
+.gate-note{color:#7D93AC;font-size:11.5px;margin-top:20px;line-height:1.5}
+
+/* pengguna dalam tetapan */
+.who{display:flex;align-items:center;gap:10px;background:#F2F5F8;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.who img{width:34px;height:34px;border-radius:50%;flex:none;background:#DCE3EB}
+.who div{flex:1;min-width:0}
+.who b{display:block;font-size:13.5px;line-height:1.2}
+.who small{color:var(--muted);font-size:11.5px;word-break:break-all}
+.who button{flex:none;border:1px solid var(--line);background:#fff;color:var(--absen);border-radius:9px;padding:8px 11px;font:600 12.5px 'Instrument Sans',sans-serif;cursor:pointer}
+
+.toast{position:fixed;left:50%;bottom:100px;transform:translate(-50%,14px);z-index:80;background:var(--ink);color:#fff;padding:12px 16px;border-radius:12px;font-size:13.5px;max-width:88%;opacity:0;pointer-events:none;transition:.22s;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.bad{background:var(--absen)}.toast.good{background:var(--hadir)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+:focus-visible{outline:2px solid var(--tele);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="gate-in">
+    <img src="icon-192.png" alt="EZ-HADIR">
+    <h2>EZ-HADIR</h2>
+    <p>Log masuk dengan akaun Google sekolah untuk merekod kehadiran kelas.</p>
+    <button class="g-btn" id="btnGoogle">
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45 24c0-1.6-.1-2.7-.4-3.9H24v7.1h12c-.2 1.9-1.5 4.7-4.4 6.6l6.7 5.2C42.2 35.3 45 30.1 45 24z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-1.9 14.5-5.3l-6.9-5.3c-1.8 1.3-4.3 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8.1 41.1 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.5 28.5c-.5-1.4-.7-2.9-.7-4.5s.3-3.1.7-4.5l-7.1-5.5C2.9 17.1 2 20.4 2 24s.9 6.9 2.4 10z"/><path fill="#EA4335" d="M24 10.7c3.2 0 5.4 1.4 6.6 2.6l6-5.9C32.9 4 28.9 2 24 2 15.4 2 8.1 6.9 4.4 14l7.1 5.5c1.8-5.3 6.7-8.8 12.5-8.8z"/></svg>
+      Log masuk dengan Google
+    </button>
+    <p class="gate-err" id="gateErr"></p>
+    <p class="gate-note" id="gateNote"></p>
+  </div>
+</div>
+
+<header>
+  <div class="head-in">
+    <div><p class="eyebrow">Kehadiran Murid Harian</p><h1>EZ-HADIR</h1></div>
+    <div style="display:flex;gap:8px">
+      <button class="gear" id="btnInstall" hidden>Pasang</button>
+      <button class="gear" id="btnSet">Tetapan</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="card">
+    <p class="card-title">Kelas &amp; tarikh</p>
+    <div class="two">
+      <div><label for="kelas">Kelas</label><select id="kelas"></select></div>
+      <div><label for="tarikh">Tarikh</label><input type="date" id="tarikh"></div>
+    </div>
+    <span class="day-chip" id="hariChip">HARI</span>
+  </section>
+
+  <section class="card">
+    <p class="card-title">Ringkasan hari ini</p>
+    <div class="tots">
+      <div class="tot"><small>Bil murid</small><b id="tBil">0</b></div>
+      <div class="tot"><small>Lelaki</small><b id="tL">0/0</b></div>
+      <div class="tot"><small>Perempuan</small><b id="tP">0/0</b></div>
+      <div class="tot no"><small>Tak hadir</small><b id="tA">0</b></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <p class="card-title">Ketuk nama murid yang tidak hadir</p>
+    <div class="roll" id="roll"></div>
+    <div class="roll-tools">
+      <button class="mini" id="btnReset">Semua hadir</button>
+      <button class="mini" id="btnEditRoll">Kemas kini senarai</button>
+    </div>
+  </section>
+
+  <section class="chat">
+    <p class="chat-label">Mesej yang akan dihantar</p>
+    <div class="bubble"><pre id="preview"></pre></div>
+    <div class="stamp"><span id="stampTime">—</span><span>✓✓</span></div>
+  </section>
+</div>
+
+<div class="bar">
+  <div class="bar-in">
+    <button class="btn ghost" id="btnCopy">Salin</button>
+    <button class="btn ghost" id="btnWa">WhatsApp</button>
+    <button class="btn primary" id="btnSend">Hantar ke Telegram</button>
+  </div>
+</div>
+
+<div class="sheet" id="sheet">
+  <div class="sheet-in">
+    <div class="sheet-top"><h2>Tetapan</h2><button class="x" id="btnClose">✕</button></div>
+    <div class="tabs">
+      <button class="tab on" data-pane="p1">Telegram</button>
+      <button class="tab" data-pane="p2">Senarai murid</button>
+    </div>
+
+    <div class="pane on" id="p1">
+      <div class="who" id="who" hidden>
+        <img id="whoPic" alt="">
+        <div><b id="whoName">—</b><small id="whoMail">—</small></div>
+        <button id="btnOut">Log keluar</button>
+      </div>
+      <div class="field"><label for="token">Bot token</label>
+        <input type="password" id="token" placeholder="8123456789:AAH...">
+        <p class="hint">Dapatkan daripada @BotFather di Telegram.</p></div>
+      <div class="field"><label for="chat">Chat ID kumpulan sekolah</label>
+        <input type="text" id="chat" placeholder="-1001234567890">
+        <p class="hint">Tambah bot ke kumpulan, hantar satu mesej, kemudian tekan Semak sambungan.</p></div>
+      <label class="check"><input type="checkbox" id="mono"> Hantar dalam blok monospace</label>
+      <button class="btn primary" id="btnTest" style="width:100%;margin-top:16px">Semak sambungan</button>
+    </div>
+
+    <div class="pane" id="p2">
+      <button class="mini" id="btnImport" style="width:100%;margin-bottom:14px">Import fail Excel senarai murid</button>
+      <input type="file" id="fileXls" accept=".xlsx,.xls" hidden>
+      <div class="field"><label for="namaKelas">Nama kelas</label>
+        <input type="text" id="namaKelas" placeholder="5  ILTIZAM"></div>
+      <div class="field"><label for="senarai">Senarai murid — satu nama satu baris</label>
+        <textarea id="senarai" spellcheck="false" placeholder="L|Ahmad Danial&#10;P|Nur Aisyah"></textarea>
+        <p class="hint">Mula setiap baris dengan <b>L</b> (lelaki) atau <b>P</b> (perempuan), diikuti <b>|</b> dan nama.</p></div>
+      <button class="btn primary" id="btnApply" style="width:100%;margin-top:14px">Guna senarai ini</button>
+      <button class="mini" id="btnCode" style="width:100%;margin-top:8px">Salin kod untuk simpan kekal dalam fail</button>
+      <p class="hint">Senarai yang ditampal di sini hanya kekal untuk sesi ini. Untuk simpan kekal, salin kod di atas dan ganti bahagian <b>KELAS</b> dalam fail HTML.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const HARI=['AHAD','ISNIN','SELASA','RABU','KHAMIS','JUMAAT','SABTU'];
+const pad=n=>String(n).padStart(2,'0');
+
+let DB = JSON.parse(JSON.stringify(CONFIG.KELAS||{}));
+let kelasKini = Object.keys(DB)[0] || '';
+let absen = new Set();
+
+/* ---- parse "L|Nama" ---- */
+function parse(list){
+  return (list||[]).map(s=>{
+    const m = String(s).trim().match(/^([LlPp])\s*[|,\-–:\s]\s*(.+)$/);
+    return m ? {j:m[1].toUpperCase(), n:m[2].trim()} : {j:'L', n:String(s).trim()};
+  }).filter(o=>o.n);
+}
+const murid = ()=> parse(DB[kelasKini]);
+
+function init(){
+  const d=new Date();
+  $('tarikh').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  $('token').value=CONFIG.BOT_TOKEN||''; $('chat').value=CONFIG.CHAT_ID||''; $('mono').checked=!!CONFIG.MONO;
+  drawKelas(); loadEditor(); render();
+}
+function drawKelas(){
+  const s=$('kelas'); s.innerHTML='';
+  Object.keys(DB).forEach(k=>{
+    const o=document.createElement('option'); o.value=k; o.textContent=k; s.appendChild(o);
+  });
+  s.value=kelasKini;
+}
+function loadEditor(){
+  $('namaKelas').value = kelasKini;
+  $('senarai').value = (DB[kelasKini]||[]).join('\n');
+}
+
+/* ---- senarai murid ---- */
+function drawRoll(){
+  const box=$('roll'), list=murid();
+  box.innerHTML='';
+  if(!list.length){
+    box.innerHTML='<div class="empty">Senarai murid masih kosong.<br>Buka Tetapan → Senarai murid untuk mengisinya.</div>';
+    return;
+  }
+  list.forEach((m,i)=>{
+    const row=document.createElement('div');
+    row.className='pupil'+(absen.has(i)?' absent':'');
+    row.innerHTML=`<span class="no">${pad(i+1)}</span><span class="jn">${m.j}</span>
+      <span class="nm"></span><span class="st">${absen.has(i)?'Tidak hadir':'Hadir'}</span>`;
+    row.querySelector('.nm').textContent=m.n;
+    row.addEventListener('click',()=>{ absen.has(i)?absen.delete(i):absen.add(i); render(); });
+    box.appendChild(row);
+  });
+}
+
+function kira(){
+  const list=murid();
+  const lj=list.filter(m=>m.j==='L').length, pj=list.length-lj;
+  let lh=0,ph=0;
+  list.forEach((m,i)=>{ if(!absen.has(i)){ m.j==='L'?lh++:ph++; } });
+  return {list,lj,pj,lh,ph,jumlah:list.length,hadir:lh+ph,tak:absen.size};
+}
+
+function buildMsg(){
+  const k=kira();
+  const d=$('tarikh').value?new Date($('tarikh').value+'T00:00:00'):new Date();
+  const tarikh=`${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+  const nama=k.list.filter((_,i)=>absen.has(i)).map(m=>m.n);
+  let m='';
+  m+=`KELAS : ${kelasKini}\n`;
+  m+=`Tarikh :${tarikh}\n`;
+  m+=`Hari : ${HARI[d.getDay()]}\n`;
+  m+=`======================\n`;
+  m+=`BIL MURID           : ${k.jumlah} ORANG\n`;
+  m+=`LELAKI                 : ${pad(k.lh)}/${pad(k.lj)}\n`;
+  m+=`PEREMPUAN      : ${pad(k.ph)}/${pad(k.pj)}\n`;
+  m+=`JUMLAH HADIR : ${pad(k.hadir)}/${pad(k.jumlah)}\n\n`;
+  m+=`MURID TIDAK HADIR\n`;
+  m+=`*****************************\n`;
+  m+= nama.length ? nama.map((s,i)=>`${i+1}. ${s}`).join('\n') : 'TIADA — SEMUA HADIR';
+  return m;
+}
+
+function render(){
+  const k=kira();
+  const d=$('tarikh').value?new Date($('tarikh').value+'T00:00:00'):new Date();
+  $('hariChip').textContent=HARI[d.getDay()];
+  $('tBil').textContent=k.jumlah;
+  $('tL').textContent=`${pad(k.lh)}/${pad(k.lj)}`;
+  $('tP').textContent=`${pad(k.ph)}/${pad(k.pj)}`;
+  $('tA').textContent=k.tak;
+  drawRoll();
+  $('preview').textContent=buildMsg();
+  const t=new Date(); $('stampTime').textContent=`${pad(t.getHours())}:${pad(t.getMinutes())}`;
+}
+
+/* ---- kawalan ---- */
+$('kelas').addEventListener('change',e=>{ kelasKini=e.target.value; absen.clear(); loadEditor(); render(); });
+$('tarikh').addEventListener('input',render);
+$('btnReset').addEventListener('click',()=>{ absen.clear(); render(); toast('Semua murid ditanda hadir.'); });
+$('btnEditRoll').addEventListener('click',()=>{ openSheet('p2'); });
+
+/* ---- sheet ---- */
+function openSheet(pane='p1'){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.pane===pane));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===pane));
+  $('sheet').classList.add('open');
+}
+$('btnSet').addEventListener('click',()=>openSheet('p1'));
+$('btnClose').addEventListener('click',()=>$('sheet').classList.remove('open'));
+$('sheet').addEventListener('click',e=>{ if(e.target.id==='sheet') $('sheet').classList.remove('open'); });
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>openSheet(t.dataset.pane)));
+
+/* ---- editor senarai ---- */
+$('btnApply').addEventListener('click',()=>{
+  const nama=$('namaKelas').value.trim();
+  const baris=$('senarai').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!nama) return toast('Isi nama kelas dahulu.','bad');
+  if(!baris.length) return toast('Senarai murid kosong.','bad');
+  if(nama!==kelasKini) delete DB[kelasKini];
+  DB[nama]=baris; kelasKini=nama; absen.clear();
+  drawKelas(); render(); $('sheet').classList.remove('open');
+  toast(`${baris.length} murid dimuatkan untuk ${nama}.`,'good');
+});
+/* ---- import fail Excel (format eksport APDM/KPM) ---- */
+$('btnImport').addEventListener('click',()=>{
+  if(typeof XLSX==='undefined') return toast('Pustaka Excel tidak dimuatkan. Sambung internet dan muat semula.','bad');
+  $('fileXls').click();
+});
+$('fileXls').addEventListener('change',async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{
+    const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+    const up=v=>String(v).toUpperCase().trim();
+
+    let hdr=-1;
+    for(let i=0;i<Math.min(rows.length,30);i++){
+      if(rows[i].some(c=>up(c)==='NAMA')){ hdr=i; break; }
+    }
+    if(hdr<0) throw new Error('Lajur NAMA tidak dijumpai dalam fail.');
+    const head=rows[hdr].map(up);
+    const iNama=head.indexOf('NAMA');
+    let iKelas=head.findIndex(h=>h.includes('KELAS'));
+
+    const bank={};
+    for(let i=hdr+1;i<rows.length;i++){
+      const nama=String(rows[i][iNama]||'').trim();
+      if(!nama) continue;
+      const kelas=(iKelas>=0?String(rows[i][iKelas]||'').trim():'')||'KELAS TANPA NAMA';
+      const u=' '+nama.toUpperCase()+' ';
+      const j=(u.includes(' BINTI ')||u.includes(' BT ')||u.includes(' BINTE '))?'P':'L';
+      (bank[kelas]=bank[kelas]||[]).push(`${j}|${nama}`);
+    }
+    const keys=Object.keys(bank);
+    if(!keys.length) throw new Error('Tiada nama murid dijumpai.');
+    keys.forEach(k=>bank[k].sort((a,b)=>a.slice(2).localeCompare(b.slice(2))));
+
+    DB=bank; kelasKini=keys[0]; absen.clear();
+    drawKelas(); loadEditor(); render();
+    toast(`${keys.length} kelas, ${Object.values(bank).flat().length} murid dimuatkan.`,'good');
+  }catch(err){ toast('Gagal baca fail: '+err.message,'bad'); }
+  e.target.value='';
+});
+
+$('btnCode').addEventListener('click',async()=>{
+  const kod='KELAS: {\n'+Object.keys(DB).map(k=>
+    `    ${JSON.stringify(k)}: [\n`+DB[k].map(s=>`      ${JSON.stringify(s)}`).join(',\n')+'\n    ]'
+  ).join(',\n')+'\n  }';
+  await salin(kod); toast('Kod disalin. Tampal ganti bahagian KELAS dalam fail.','good');
+});
+
+/* ---- toast ---- */
+let tId;
+function toast(msg,kind=''){
+  const t=$('toast'); t.textContent=msg; t.className='toast show '+kind;
+  clearTimeout(tId); tId=setTimeout(()=>t.className='toast '+kind,3200);
+}
+
+/* ---- telegram ---- */
+async function tg(method,body){
+  const token=$('token').value.trim();
+  if(!token) throw new Error('Bot token belum diisi. Buka Tetapan.');
+  const r=await fetch(`https://api.telegram.org/bot${token}/${method}`,{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+  const j=await r.json();
+  if(!j.ok) throw new Error(j.description||'Telegram menolak permintaan.');
+  return j.result;
+}
+$('btnTest').addEventListener('click',async e=>{
+  const b=e.target; b.disabled=true; b.textContent='Menyemak…';
+  try{
+    const me=await tg('getMe');
+    await tg('sendMessage',{chat_id:$('chat').value.trim(),text:`✅ Sambungan berjaya. Bot @${me.username} sedia digunakan.`});
+    toast('Sambungan berjaya. Semak kumpulan Telegram.','good');
+  }catch(err){ toast(err.message,'bad'); }
+  b.disabled=false; b.textContent='Semak sambungan';
+});
+$('btnSend').addEventListener('click',async()=>{
+  const chat=$('chat').value.trim();
+  if(!chat){ openSheet('p1'); return toast('Isi Chat ID kumpulan dahulu.','bad'); }
+  const b=$('btnSend'); b.disabled=true; b.textContent='Menghantar…';
+  const teks=buildMsg();
+  try{
+    await tg('sendMessage', $('mono').checked
+      ? {chat_id:chat,text:'<pre>'+teks.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</pre>',parse_mode:'HTML'}
+      : {chat_id:chat,text:teks});
+    toast('Laporan dihantar ke Telegram.','good');
+  }catch(err){ toast(err.message,'bad'); }
+  b.disabled=false; b.textContent='Hantar ke Telegram';
+});
+
+/* ---- salin ---- */
+async function salin(teks){
+  try{ await navigator.clipboard.writeText(teks); }
+  catch{
+    const ta=document.createElement('textarea'); ta.value=teks;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  }
+}
+$('btnCopy').addEventListener('click',async()=>{ await salin(buildMsg()); toast('Teks disalin.','good'); });
+$('btnWa').addEventListener('click',()=>window.open('https://wa.me/?text='+encodeURIComponent(buildMsg()),'_blank'));
+
+init();
+
+/* ---- pemasangan PWA ---- */
+let promptPasang = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  promptPasang = e;
+  $('btnInstall').hidden = false;
+});
+$('btnInstall').addEventListener('click', async () => {
+  if(!promptPasang){
+    return toast('Buka menu pelayar dan pilih “Tambah ke skrin utama”.');
+  }
+  promptPasang.prompt();
+  const { outcome } = await promptPasang.userChoice;
+  promptPasang = null;
+  $('btnInstall').hidden = true;
+  if(outcome === 'accepted') toast('App dipasang pada skrin utama.','good');
+});
+window.addEventListener('appinstalled', () => {
+  $('btnInstall').hidden = true;
+  toast('App dipasang pada skrin utama.','good');
+});
+
+/* iOS tiada beforeinstallprompt — tunjuk butang dengan panduan manual */
+const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const berdiri = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+if(iOS && !berdiri) $('btnInstall').hidden = false;
+
+/* ---- service worker ---- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const baru = reg.installing;
+        baru.addEventListener('statechange', () => {
+          if(baru.state === 'installed' && navigator.serviceWorker.controller){
+            toast('Versi baharu tersedia. Tutup dan buka semula app.');
+          }
+        });
+      });
+    }).catch(()=>{});
+  });
+}
+
+/* ---- pintu masuk: dipanggil oleh modul log masuk di bawah ---- */
+window.EZ = {
+  buka(){ $('gate').hidden = true; },
+  tunjukPengguna(u){
+    if(!u){ $('who').hidden = true; return; }
+    $('who').hidden = false;
+    $('whoName').textContent = u.displayName || 'Guru';
+    $('whoMail').textContent = u.email || '';
+    if(u.photoURL) $('whoPic').src = u.photoURL;
+  },
+  toast
+};
+</script>
+
+<script type="module">
+/* ══════════════════════════════════════════════════════════════
+   LOG MASUK GOOGLE
+   Tanpa tetapan Firebase, app terbuka kepada sesiapa (mod ujian).
+   ══════════════════════════════════════════════════════════════ */
+const gate=document.getElementById('gate'), err=document.getElementById('gateErr'),
+      note=document.getElementById('gateNote'), btn=document.getElementById('btnGoogle');
+
+if(!CONFIG.FIREBASE || !CONFIG.FIREBASE.apiKey){
+  window.EZ.buka();
+  console.warn('EZ-HADIR: log masuk tidak diaktifkan. Isi CONFIG.FIREBASE untuk mengunci app.');
+} else {
+  const [{ initializeApp }, auth] = await Promise.all([
+    import('https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js'),
+    import('https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js')
+  ]);
+  const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+          getRedirectResult, onAuthStateChanged, signOut, setPersistence,
+          browserLocalPersistence } = auth;
+
+  const app = initializeApp(CONFIG.FIREBASE);
+  const A = getAuth(app);
+  await setPersistence(A, browserLocalPersistence).catch(()=>{});
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt:'select_account' });
+
+  const domain = (CONFIG.AKSES?.domain||[]).map(d=>d.toLowerCase());
+  const emel   = (CONFIG.AKSES?.emel||[]).map(e=>e.toLowerCase());
+  const dibenarkan = e => {
+    e = (e||'').toLowerCase();
+    if(!domain.length && !emel.length) return true;
+    return emel.includes(e) || domain.some(d => e.endsWith('@'+d));
+  };
+  note.textContent = domain.length
+    ? 'Hanya akaun ' + domain.map(d=>'@'+d).join(' atau ') + ' dibenarkan.'
+    : 'Hanya akaun yang disenaraikan oleh admin dibenarkan.';
+
+  const gagal = m => { err.textContent = m; btn.disabled = false; };
+
+  await getRedirectResult(A).catch(e => gagal(mesej(e)));
+
+  onAuthStateChanged(A, async u => {
+    if(!u){ gate.hidden = false; btn.disabled = false; window.EZ.tunjukPengguna(null); return; }
+    if(!dibenarkan(u.email)){
+      await signOut(A);
+      gagal('Akaun ' + u.email + ' tiada kebenaran. Guna akaun sekolah anda.');
+      return;
+    }
+    window.EZ.tunjukPengguna(u);
+    window.EZ.buka();
+    err.textContent = '';
+  });
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true; err.textContent = '';
+    try{ await signInWithPopup(A, provider); }
+    catch(e){
+      const c = e.code || '';
+      if(c.includes('popup') || c.includes('operation-not-supported')){
+        try{ await signInWithRedirect(A, provider); } catch(e2){ gagal(mesej(e2)); }
+      } else gagal(mesej(e));
+    }
+  });
+
+  document.getElementById('btnOut').addEventListener('click', async () => {
+    await signOut(A);
+    document.getElementById('sheet').classList.remove('open');
+    gate.hidden = false;
+  });
+
+  function mesej(e){
+    const c = e?.code || '';
+    if(c.includes('unauthorized-domain')) return 'Domain laman ini belum didaftarkan dalam Firebase → Authentication → Settings → Authorized domains.';
+    if(c.includes('network')) return 'Tiada sambungan internet.';
+    if(c.includes('cancelled') || c.includes('closed-by-user')) return '';
+    return 'Log masuk gagal: ' + (e?.message || c);
+  }
+}
+</script>
+</body>
+</html>
