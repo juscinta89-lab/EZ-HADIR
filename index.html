@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#12233A">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0E1B2E" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A1422" media="(prefers-color-scheme: dark)">
 <title>EZ-HADIR — Kehadiran Murid</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
@@ -12,11 +14,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="EZ-HADIR">
 <meta name="description" content="Rekod kehadiran murid dan hantar laporan harian ke kumpulan Telegram sekolah.">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script>
 /* ══════════════════════════════════════════════════════════════
    BAHAGIAN ADMIN — edit di sini sahaja.
@@ -41,147 +42,301 @@ const CONFIG = {
 
   /* Admin yang boleh membuka Tetapan dan mengubah data.
      WAJIB diisi. Jika kosong, semua guru menjadi admin. */
-  ADMIN: ["g-45275576@moe-dl.edu.my"]
+  ADMIN: ["admin@moe-dl.edu.my"]
 };
 </script>
-
 <style>
+/* ── token warna: diambil dari logo EZ-HADIR ───────────────── */
 :root{
-  --ink:#12233A;--ink-2:#2C3E56;--paper:#E9EDF2;--card:#FFF;--line:#D3DBE5;--muted:#6B7A8D;
-  --hadir:#1B7A5A;--hadir-soft:#E4F2EC;--absen:#B3352B;--absen-soft:#FBE9E7;--tele:#2A7FC4;--r:14px;
+  --ink:#0E1B2E;      --ink-2:#33465F;   --muted:#6C7F96;
+  --kertas:#EFF3F8;   --kad:#FFFFFF;     --garis:#DBE3EC;
+  --biru:#0B72E7;     --biru-2:#065BC0;  --kuning:#FFC220;
+  --hadir:#12805C;    --hadir-l:#E2F3EC;
+  --absen:#D14332;    --absen-l:#FCEAE7;
+  --r:16px;  --tap:58px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --ink:#E8EFF7;    --ink-2:#B7C6D8;   --muted:#8397AE;
+    --kertas:#0A1422; --kad:#132234;     --garis:#22344A;
+    --biru:#3B96FF;   --biru-2:#2A7FE0;
+    --hadir:#4FD3A3;  --hadir-l:#123A30;
+    --absen:#FF8A76;  --absen-l:#3A1C18;
+  }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
 body{
-  font-family:'Instrument Sans',system-ui,-apple-system,sans-serif;color:var(--ink);
-  background:var(--paper);
-  background-image:repeating-linear-gradient(to bottom,transparent 0 31px,rgba(18,35,58,.055) 31px 32px);
-  font-size:16px;line-height:1.45;padding-bottom:104px;
+  margin:0;font-family:'Instrument Sans',system-ui,-apple-system,sans-serif;
+  font-size:16px;line-height:1.45;color:var(--ink);background:var(--kertas);
+  overscroll-behavior-y:contain;touch-action:manipulation;
+  padding-bottom:calc(84px + env(safe-area-inset-bottom));
 }
-.wrap{max-width:520px;margin:0 auto;padding:0 16px}
-header{background:var(--ink);color:#fff;padding:calc(env(safe-area-inset-top) + 18px) 16px 18px;margin-bottom:18px;border-bottom:3px solid var(--absen)}
-.head-in{max-width:520px;margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
-.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:#9DB4CE;margin:0 0 4px}
-h1{font-family:'Bricolage Grotesque','Instrument Sans',sans-serif;font-weight:800;font-size:29px;line-height:1;letter-spacing:-.02em;margin:0}
-.gear{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:11px;padding:9px 13px;font:600 13px 'Instrument Sans',sans-serif;cursor:pointer;flex:none}
-.gear:hover{background:rgba(255,255,255,.18)}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2.5px solid var(--biru);outline-offset:2px;border-radius:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:0 1px 0 rgba(18,35,58,.04)}
-.card-title{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;display:flex;align-items:center;gap:8px}
-.card-title::after{content:"";flex:1;height:1px;background:var(--line)}
-label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
-input[type=text],input[type=date],input[type=password],select,textarea{
-  width:100%;font-family:inherit;font-size:16px;color:var(--ink);background:#F7F9FB;
-  border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none}
-textarea{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;min-height:190px;resize:vertical}
-input:focus,select:focus,textarea:focus{border-color:var(--tele);box-shadow:0 0 0 3px rgba(42,127,196,.16);background:#fff}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.field+.field{margin-top:12px}
-.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
-.day-chip{display:inline-block;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;background:var(--ink);color:#fff;padding:4px 10px;border-radius:6px}
+/* ── bar atas ──────────────────────────────────────────────── */
+.top{
+  position:sticky;top:0;z-index:30;background:var(--ink);
+  padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;
+  box-shadow:0 1px 0 rgba(0,0,0,.12)
+}
+@media (prefers-color-scheme: dark){ .top{background:#08111D} }
+.top-in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.brand img{width:34px;height:34px;border-radius:9px;flex:none}
+.brand b{
+  display:block;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;
+  font-size:17px;letter-spacing:-.01em;color:#fff;line-height:1.1
+}
+.brand span{
+  display:block;font-family:'JetBrains Mono',monospace;font-size:9.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:#8FA8C4
+}
+.ico{
+  width:38px;height:38px;flex:none;display:grid;place-items:center;
+  background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);
+  border-radius:11px;color:#fff
+}
+.ico:active{background:rgba(255,255,255,.2)}
+.ico[hidden]{display:none}
+.ico svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
-/* ringkasan */
-.tots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.tot{border-radius:11px;padding:9px 8px;text-align:center;border:1px solid var(--line);background:#F7F9FB}
-.tot small{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.tot b{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;font-weight:700}
-.tot.ok{background:var(--hadir-soft);border-color:#BFE0D3}.tot.ok b{color:var(--hadir)}
-.tot.no{background:var(--absen-soft);border-color:#F0CFCA}.tot.no b{color:var(--absen)}
+/* ── pemilih kelas & tarikh ────────────────────────────────── */
+.panel{
+  background:var(--kad);border:1px solid var(--garis);border-radius:var(--r);
+  margin:14px 0;padding:13px;box-shadow:0 1px 2px rgba(14,27,46,.05)
+}
+.pick{display:flex;gap:9px;margin-bottom:14px}
+.sel{position:relative;flex:1;min-width:0}
+.sel svg{position:absolute;right:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;
+  stroke:var(--muted);fill:none;stroke-width:2;pointer-events:none}
+select,input[type=date]{
+  width:100%;height:48px;font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);
+  background:var(--kertas);border:1.5px solid var(--garis);border-radius:12px;
+  padding:0 34px 0 13px;appearance:none;-webkit-appearance:none
+}
+input[type=date]{flex:none;width:auto;min-width:132px;padding:0 12px;font-weight:600}
+select:focus,input:focus,textarea:focus{border-color:var(--biru);outline:none}
 
-/* senarai murid */
-.roll{border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.pupil{display:flex;align-items:center;gap:10px;padding:9px 11px;border-bottom:1px solid var(--line);cursor:pointer;background:#fff}
+/* ── SIGNATURE: jalur kedatangan, satu petak satu murid ────── */
+.meter-top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:11px}
+.big{flex:none}
+.big b{
+  font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:38px;
+  line-height:.92;letter-spacing:-.03em;font-variant-numeric:tabular-nums
+}
+.big small{
+  display:block;font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:6px;white-space:nowrap
+}
+.stats{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.pil{
+  font-size:11.5px;font-weight:600;padding:5px 9px;border-radius:9px;
+  background:var(--kertas);border:1px solid var(--garis);color:var(--ink-2);white-space:nowrap
+}
+.pil b{font-variant-numeric:tabular-nums}
+.pil.red{background:var(--absen-l);border-color:transparent;color:var(--absen)}
+.ticks{display:flex;gap:3px;height:26px}
+.tk{
+  flex:1;min-width:2px;border-radius:3px;background:var(--hadir);opacity:.85;
+  transition:background .16s,transform .16s
+}
+.tk.off{background:var(--absen);opacity:1;transform:scaleY(1.12)}
+.ticks:empty::after{
+  content:"Tiada murid";flex:1;display:grid;place-items:center;
+  font-size:12px;color:var(--muted);background:var(--kertas);border-radius:6px
+}
+
+/* ── carian + tindakan senarai ─────────────────────────────── */
+.tools{
+  position:sticky;top:calc(env(safe-area-inset-top) + 58px);z-index:20;
+  display:flex;gap:8px;padding:8px 0 10px;background:var(--kertas)
+}
+.cari{position:relative;flex:1}
+.cari svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;
+  stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round}
+.cari input{
+  width:100%;height:46px;font-size:16px;font-family:inherit;color:var(--ink);
+  background:var(--kad);border:1.5px solid var(--garis);border-radius:12px;padding:0 12px 0 36px
+}
+.tools button{
+  flex:none;height:46px;padding:0 14px;border:1.5px solid var(--garis);background:var(--kad);
+  color:var(--ink-2);border-radius:12px;font-weight:600;font-size:13.5px
+}
+.tools button:active{background:var(--kertas)}
+
+/* ── senarai murid ─────────────────────────────────────────── */
+.roll{
+  background:var(--kad);border:1px solid var(--garis);border-radius:var(--r);
+  overflow:hidden;margin-bottom:14px
+}
+.pupil{
+  display:flex;align-items:center;gap:9px;min-height:var(--tap);padding:9px 12px;
+  border-bottom:1px solid var(--garis);background:var(--kad);
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+  transition:background .14s
+}
 .pupil:last-child{border-bottom:0}
-.pupil:active{background:#F2F5F8}
-.pupil .no{width:22px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);flex:none}
-.pupil .jn{width:20px;height:20px;flex:none;border-radius:6px;font:700 10px 'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;background:#EAF0F6;color:var(--ink-2)}
-.pupil .nm{flex:1;font-size:14.5px;font-weight:500;line-height:1.25}
-.pupil .st{flex:none;font:600 11px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:20px;background:var(--hadir-soft);color:var(--hadir);border:1px solid #BFE0D3}
-.pupil.absent{background:var(--absen-soft)}
-.pupil.absent .nm{color:var(--absen);text-decoration:line-through;text-decoration-thickness:1px}
-.pupil.absent .st{background:var(--absen);color:#fff;border-color:var(--absen)}
-.roll-tools{display:flex;gap:8px;margin-top:10px}
-.mini{flex:1;padding:9px;border:1px solid var(--line);background:#F7F9FB;border-radius:10px;font:600 13px 'Instrument Sans',sans-serif;color:var(--ink-2);cursor:pointer}
-.mini:hover{border-color:var(--tele);color:var(--tele)}
-.empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:13.5px}
+.pupil:active{background:var(--kertas)}
+.pupil[hidden]{display:none}
+.jn{
+  width:26px;height:26px;flex:none;border-radius:8px;display:grid;place-items:center;
+  font:700 11px 'JetBrains Mono',monospace;background:var(--kertas);color:var(--ink-2)
+}
+.nm{flex:1;min-width:0;font-size:14px;font-weight:500;line-height:1.28;letter-spacing:-.005em}
+.no{width:20px;flex:none;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);text-align:right}
+.st{
+  flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  border:2px solid var(--garis);color:transparent;transition:.14s
+}
+.st svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.pupil.absent{background:var(--absen-l)}
+.pupil.absent .nm{color:var(--absen);text-decoration:line-through;text-decoration-thickness:1.5px}
+.pupil.absent .jn{background:transparent;color:var(--absen)}
+.pupil.absent .st{background:var(--absen);border-color:var(--absen);color:#fff}
+.kosong{padding:34px 20px;text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
 
-/* pratonton */
-.chat{background:#CBD8E4;background-image:radial-gradient(circle at 20% 15%,rgba(255,255,255,.5) 0,transparent 45%),radial-gradient(circle at 80% 80%,rgba(18,35,58,.07) 0,transparent 40%);border:1px solid var(--line);border-radius:var(--r);padding:16px 14px 14px;margin-bottom:14px}
-.chat-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#4A5F78;margin:0 0 10px}
-.bubble{position:relative;background:#fff;border-radius:14px 14px 14px 4px;padding:13px 14px;box-shadow:0 2px 6px rgba(18,35,58,.14)}
-.bubble::after{content:"";position:absolute;left:-6px;bottom:0;width:12px;height:12px;background:#fff;clip-path:polygon(100% 0,100% 100%,0 100%)}
-.bubble pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
-.stamp{display:flex;justify-content:flex-end;align-items:center;gap:5px;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#4A5F78}
+/* ── pratonton mesej ───────────────────────────────────────── */
+.peek{
+  background:var(--kad);border:1px solid var(--garis);border-radius:var(--r);
+  overflow:hidden;margin-bottom:14px
+}
+.peek summary{
+  list-style:none;min-height:52px;display:flex;align-items:center;gap:9px;padding:0 14px;
+  font-size:14px;font-weight:600;color:var(--ink-2)
+}
+.peek summary::-webkit-details-marker{display:none}
+.peek summary svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;transition:.2s}
+.peek[open] summary svg{transform:rotate(180deg)}
+.peek-body{padding:0 12px 12px}
+.bubble{
+  position:relative;background:var(--kertas);border-radius:14px 14px 14px 5px;padding:13px 14px
+}
+.bubble pre{
+  margin:0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.62;
+  white-space:pre-wrap;word-break:break-word;color:var(--ink)
+}
+.cap{
+  display:flex;justify-content:flex-end;gap:5px;margin-top:7px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)
+}
 
-/* bar */
-.bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(233,237,242,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:10px 16px calc(env(safe-area-inset-bottom) + 10px)}
-.bar-in{max-width:520px;margin:0 auto;display:flex;gap:8px}
-.btn{border:0;border-radius:12px;font-family:inherit;font-weight:600;font-size:15px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
-.btn.primary{flex:1;background:var(--tele);color:#fff;box-shadow:0 2px 0 #1F639C}
-.btn.primary:active{transform:translateY(1px);box-shadow:0 1px 0 #1F639C}
-.btn.primary[disabled]{background:#9FB3C6;box-shadow:none;cursor:not-allowed}
-.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);flex:none;padding:14px 15px}
+/* ── bar tindakan bawah ────────────────────────────────────── */
+.bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:35;
+  background:color-mix(in srgb,var(--kertas) 88%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-top:1px solid var(--garis);
+  padding:9px 14px calc(env(safe-area-inset-bottom) + 9px)
+}
+.bar-in{max-width:560px;margin:0 auto;display:flex;gap:8px}
+.hantar{
+  flex:1;height:54px;border:0;border-radius:15px;background:var(--biru);color:#fff;
+  font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px;
+  box-shadow:0 3px 0 var(--biru-2)
+}
+.hantar:active{transform:translateY(2px);box-shadow:0 1px 0 var(--biru-2)}
+.hantar[disabled]{background:var(--muted);box-shadow:none}
+.hantar svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sisi{
+  width:54px;height:54px;flex:none;border:1.5px solid var(--garis);background:var(--kad);
+  color:var(--ink-2);border-radius:15px;display:grid;place-items:center
+}
+.sisi:active{background:var(--kertas)}
+.sisi svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
-/* sheet */
-.sheet{position:fixed;inset:0;z-index:60;display:none;background:rgba(18,35,58,.45);align-items:flex-end;justify-content:center}
+/* ── helaian tetapan ───────────────────────────────────────── */
+.sheet{position:fixed;inset:0;z-index:60;display:none;background:rgba(6,14,25,.55);align-items:flex-end;justify-content:center}
 .sheet.open{display:flex}
-.sheet-in{background:var(--card);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom) + 18px);max-height:90vh;overflow:auto}
+.sheet-in{
+  background:var(--kad);width:100%;max-width:560px;border-radius:22px 22px 0 0;
+  padding:8px 14px calc(env(safe-area-inset-bottom) + 18px);
+  max-height:92dvh;overflow:auto;-webkit-overflow-scrolling:touch
+}
+.grip{width:38px;height:4px;border-radius:99px;background:var(--garis);margin:8px auto 12px}
 .sheet-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .sheet-top h2{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;margin:0}
-.x{width:34px;height:38px;flex:none;border:1px solid var(--line);background:#F7F9FB;border-radius:9px;color:var(--muted);font-size:16px;cursor:pointer;font-family:inherit}
-.tabs{display:flex;gap:6px;background:#F2F5F8;padding:4px;border-radius:12px;margin-bottom:16px}
-.tab{flex:1;padding:9px;border:0;background:transparent;border-radius:9px;font:600 13.5px 'Instrument Sans',sans-serif;color:var(--muted);cursor:pointer}
-.tab.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(18,35,58,.12)}
+.tutup{width:38px;height:38px;border:1.5px solid var(--garis);background:var(--kertas);border-radius:11px;color:var(--muted);font-size:17px}
+.tabs{display:flex;gap:5px;background:var(--kertas);padding:4px;border-radius:13px;margin-bottom:16px}
+.tab{flex:1;height:40px;border:0;background:transparent;border-radius:10px;font-weight:600;font-size:13.5px;color:var(--muted)}
+.tab.on{background:var(--kad);color:var(--ink);box-shadow:0 1px 3px rgba(14,27,46,.14)}
 .pane{display:none}.pane.on{display:block}
-.check{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:14px;color:var(--ink-2)}
-.check input{width:19px;height:19px;accent-color:var(--tele)}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
+input[type=text],input[type=password],textarea{
+  width:100%;font-family:inherit;font-size:16px;color:var(--ink);background:var(--kertas);
+  border:1.5px solid var(--garis);border-radius:12px;padding:12px 13px
+}
+textarea{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;min-height:160px;resize:vertical}
+.field+.field{margin-top:13px}
+.hint{font-size:12px;color:var(--muted);margin:7px 0 0;line-height:1.5}
+.check{display:flex;align-items:center;gap:11px;margin-top:15px;font-size:14px;color:var(--ink-2)}
+.check input{width:21px;height:21px;accent-color:var(--biru)}
+.utama{
+  width:100%;height:52px;border:0;border-radius:14px;background:var(--biru);color:#fff;
+  font-weight:700;font-size:15.5px;margin-top:16px
+}
+.utama:active{transform:translateY(1px)}
+.utama[disabled]{background:var(--muted)}
+.kedua{
+  width:100%;height:48px;border:1.5px solid var(--garis);background:var(--kertas);color:var(--ink-2);
+  border-radius:13px;font-weight:600;font-size:14px;margin-top:9px
+}
+.who{display:flex;align-items:center;gap:11px;background:var(--kertas);border:1px solid var(--garis);border-radius:14px;padding:11px 12px;margin-bottom:14px}
+.who img{width:38px;height:38px;border-radius:50%;flex:none;background:var(--garis)}
+.who div{flex:1;min-width:0}
+.who b{display:block;font-size:14px;line-height:1.2}
+.who small{color:var(--muted);font-size:11.5px;word-break:break-all}
+.who button{flex:none;border:1.5px solid var(--garis);background:var(--kad);color:var(--absen);border-radius:11px;padding:9px 12px;font-weight:600;font-size:12.5px}
+.amaran{background:#FFF6E3;border:1px solid #F2DDAE;color:#7D5A12;padding:11px 13px;border-radius:13px;font-size:12.5px;margin-bottom:14px;line-height:1.5}
+@media (prefers-color-scheme: dark){ .amaran{background:#33280F;border-color:#4E3D16;color:#F0CF86} }
 
-/* skrin log masuk */
+/* ── skrin log masuk ───────────────────────────────────────── */
 .gate{
-  position:fixed;inset:0;z-index:100;background:var(--ink);
-  display:flex;align-items:center;justify-content:center;padding:28px;
-  background-image:radial-gradient(circle at 50% 18%,rgba(9,130,248,.35) 0,transparent 58%)
+  position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:28px;
+  background:#0A1422;
+  background-image:radial-gradient(120% 80% at 50% 0%,#123B6B 0%,#0A1422 62%)
 }
 .gate[hidden]{display:none}
 .gate-in{max-width:340px;width:100%;text-align:center;color:#fff}
-.gate-in img{width:104px;height:104px;border-radius:24px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.gate-in h2{font-family:'Bricolage Grotesque',sans-serif;font-size:27px;margin:18px 0 6px;letter-spacing:-.02em}
-.gate-in p{color:#A9BED6;font-size:14px;margin:0 0 22px;line-height:1.5}
+.gate-in img{width:112px;height:112px;border-radius:27px;box-shadow:0 14px 40px rgba(0,0,0,.45)}
+.gate-in h2{font-family:'Bricolage Grotesque',sans-serif;font-size:29px;margin:20px 0 7px;letter-spacing:-.025em}
+.gate-in p{color:#A6BCD6;font-size:14.5px;margin:0 0 24px;line-height:1.55}
 .g-btn{
-  width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
-  background:#fff;color:#1F2937;border:0;border-radius:12px;padding:14px;
-  font:600 15px 'Instrument Sans',sans-serif;cursor:pointer
+  width:100%;height:54px;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:#fff;color:#1A2433;border:0;border-radius:14px;font-weight:600;font-size:15.5px
 }
 .g-btn:active{transform:translateY(1px)}
-.g-btn[disabled]{opacity:.6;cursor:progress}
-.gate-err{color:#FFB4AC;font-size:13px;min-height:18px;margin-top:14px}
-.gate-note{color:#7D93AC;font-size:11.5px;margin-top:20px;line-height:1.5}
+.g-btn[disabled]{opacity:.6}
+.gate-err{color:#FFB1A3;font-size:13px;min-height:19px;margin-top:15px;line-height:1.5}
+.gate-note{color:#7A91AC;font-size:11.5px;margin-top:22px;line-height:1.55}
 
-/* pengguna dalam tetapan */
-.who{display:flex;align-items:center;gap:10px;background:#F2F5F8;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:14px}
-.who img{width:34px;height:34px;border-radius:50%;flex:none;background:#DCE3EB}
-.who div{flex:1;min-width:0}
-.who b{display:block;font-size:13.5px;line-height:1.2}
-.who small{color:var(--muted);font-size:11.5px;word-break:break-all}
-.who button{flex:none;border:1px solid var(--line);background:#fff;color:var(--absen);border-radius:9px;padding:8px 11px;font:600 12.5px 'Instrument Sans',sans-serif;cursor:pointer}
-
-.amaran{background:#FEF6E7;border:1px solid #F3DFB5;color:#8A6117;padding:10px 12px;border-radius:11px;font-size:12.5px;margin-bottom:14px}
-.toast{position:fixed;left:50%;bottom:100px;transform:translate(-50%,14px);z-index:80;background:var(--ink);color:#fff;padding:12px 16px;border-radius:12px;font-size:13.5px;max-width:88%;opacity:0;pointer-events:none;transition:.22s;text-align:center}
+/* ── toast ─────────────────────────────────────────────────── */
+.toast{
+  position:fixed;left:50%;bottom:calc(94px + env(safe-area-inset-bottom));z-index:80;
+  transform:translate(-50%,16px);background:var(--ink);color:var(--kad);
+  padding:13px 17px;border-radius:14px;font-size:13.5px;font-weight:500;line-height:1.4;
+  max-width:88%;opacity:0;pointer-events:none;transition:.2s;text-align:center;
+  box-shadow:0 8px 24px rgba(6,14,25,.28)
+}
+@media (prefers-color-scheme: dark){ .toast{background:#22364F;color:#EAF1F9} }
 .toast.show{opacity:1;transform:translate(-50%,0)}
-.toast.bad{background:var(--absen)}.toast.good{background:var(--hadir)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-:focus-visible{outline:2px solid var(--tele);outline-offset:2px}
+.toast.bad{background:var(--absen);color:#fff}
+.toast.good{background:var(--hadir);color:#fff}
 </style>
 </head>
 <body>
 
+<!-- ── log masuk ─────────────────────────────────────────── -->
 <div class="gate" id="gate">
   <div class="gate-in">
-    <img src="icon-192.png" alt="EZ-HADIR">
+    <img src="icon-192.png" alt="">
     <h2>EZ-HADIR</h2>
     <p>Log masuk dengan akaun Google sekolah untuk merekod kehadiran kelas.</p>
     <button class="g-btn" id="btnGoogle">
-      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45 24c0-1.6-.1-2.7-.4-3.9H24v7.1h12c-.2 1.9-1.5 4.7-4.4 6.6l6.7 5.2C42.2 35.3 45 30.1 45 24z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-1.9 14.5-5.3l-6.9-5.3c-1.8 1.3-4.3 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8.1 41.1 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.5 28.5c-.5-1.4-.7-2.9-.7-4.5s.3-3.1.7-4.5l-7.1-5.5C2.9 17.1 2 20.4 2 24s.9 6.9 2.4 10z"/><path fill="#EA4335" d="M24 10.7c3.2 0 5.4 1.4 6.6 2.6l6-5.9C32.9 4 28.9 2 24 2 15.4 2 8.1 6.9 4.4 14l7.1 5.5c1.8-5.3 6.7-8.8 12.5-8.8z"/></svg>
+      <svg width="19" height="19" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45 24c0-1.6-.1-2.7-.4-3.9H24v7.1h12c-.2 1.9-1.5 4.7-4.4 6.6l6.7 5.2C42.2 35.3 45 30.1 45 24z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-1.9 14.5-5.3l-6.9-5.3c-1.8 1.3-4.3 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8.1 41.1 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.5 28.5c-.5-1.4-.7-2.9-.7-4.5s.3-3.1.7-4.5l-7.1-5.5C2.9 17.1 2 20.4 2 24s.9 6.9 2.4 10z"/><path fill="#EA4335" d="M24 10.7c3.2 0 5.4 1.4 6.6 2.6l6-5.9C32.9 4 28.9 2 24 2 15.4 2 8.1 6.9 4.4 14l7.1 5.5c1.8-5.3 6.7-8.8 12.5-8.8z"/></svg>
       Log masuk dengan Google
     </button>
     <p class="gate-err" id="gateErr"></p>
@@ -189,113 +344,141 @@ input:focus,select:focus,textarea:focus{border-color:var(--tele);box-shadow:0 0 
   </div>
 </div>
 
-<header>
-  <div class="head-in">
-    <div><p class="eyebrow">Kehadiran Murid Harian</p><h1>EZ-HADIR</h1></div>
-    <div style="display:flex;gap:8px">
-      <button class="gear" id="btnInstall" hidden>Pasang</button>
-      <button class="gear" id="btnSet" hidden>Tetapan</button>
-      <button class="gear" id="btnKeluar">Keluar</button>
+<!-- ── bar atas ──────────────────────────────────────────── -->
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <img src="icon-192.png" alt="">
+      <div><b>EZ-HADIR</b><span>Kehadiran Harian</span></div>
     </div>
+    <button class="ico" id="btnInstall" hidden aria-label="Pasang app">
+      <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+    </button>
+    <button class="ico" id="btnSet" hidden aria-label="Tetapan admin">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7.9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H2a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1.1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H8a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V8a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
+    </button>
+    <button class="ico" id="btnKeluar" aria-label="Log keluar">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>
+    </button>
   </div>
 </header>
 
-<div class="wrap">
+<main class="wrap">
 
-  <section class="card">
-    <p class="card-title">Kelas &amp; tarikh</p>
-    <div class="two">
-      <div><label for="kelas">Kelas</label><select id="kelas"></select></div>
-      <div><label for="tarikh">Tarikh</label><input type="date" id="tarikh"></div>
+  <section class="panel">
+    <div class="pick">
+      <div class="sel">
+        <select id="kelas" aria-label="Pilih kelas"></select>
+        <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <input type="date" id="tarikh" aria-label="Tarikh">
     </div>
-    <span class="day-chip" id="hariChip">HARI</span>
-  </section>
 
-  <section class="card">
-    <p class="card-title">Ringkasan hari ini</p>
-    <div class="tots">
-      <div class="tot"><small>Bil murid</small><b id="tBil">0</b></div>
-      <div class="tot"><small>Lelaki</small><b id="tL">0/0</b></div>
-      <div class="tot"><small>Perempuan</small><b id="tP">0/0</b></div>
-      <div class="tot no"><small>Tak hadir</small><b id="tA">0</b></div>
+    <div class="meter-top">
+      <div class="big"><b id="tHadir">0/0</b><small id="hariChip">hadir</small></div>
+      <div class="stats">
+        <span class="pil">L <b id="tL">0/0</b></span>
+        <span class="pil">P <b id="tP">0/0</b></span>
+        <span class="pil red">Tidak hadir <b id="tA">0</b></span>
+      </div>
     </div>
+    <div class="ticks" id="ticks" aria-hidden="true"></div>
   </section>
 
-  <section class="card">
-    <p class="card-title">Ketuk nama murid yang tidak hadir</p>
-    <div class="roll" id="roll"></div>
-    <div class="roll-tools">
-      <button class="mini" id="btnReset">Semua hadir</button>
+  <div class="tools">
+    <div class="cari">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="cari" placeholder="Cari nama murid" enterkeyhint="search" autocomplete="off">
     </div>
-  </section>
+    <button id="btnReset">Semua hadir</button>
+  </div>
 
-  <section class="chat">
-    <p class="chat-label">Mesej yang akan dihantar</p>
-    <div class="bubble"><pre id="preview"></pre></div>
-    <div class="stamp"><span id="stampTime">—</span><span>✓✓</span></div>
-  </section>
-</div>
+  <div class="roll" id="roll"></div>
 
+  <details class="peek" id="peek">
+    <summary>
+      Lihat mesej yang akan dihantar
+      <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="m6 9 6 6 6-6"/></svg>
+    </summary>
+    <div class="peek-body">
+      <div class="bubble"><pre id="preview"></pre></div>
+      <div class="cap"><span id="stampTime">—</span><span>✓✓</span></div>
+    </div>
+  </details>
+</main>
+
+<!-- ── bar tindakan ──────────────────────────────────────── -->
 <div class="bar">
   <div class="bar-in">
-    <button class="btn ghost" id="btnCopy">Salin</button>
-    <button class="btn ghost" id="btnWa">WhatsApp</button>
-    <button class="btn primary" id="btnSend">Hantar ke Telegram</button>
+    <button class="sisi" id="btnCopy" aria-label="Salin teks">
+      <svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M6 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V6"/></svg>
+    </button>
+    <button class="sisi" id="btnWa" aria-label="Hantar melalui WhatsApp">
+      <svg viewBox="0 0 24 24"><path d="M3 21l1.7-4.6A8.4 8.4 0 1 1 8 20.1z"/><path d="M8.6 9.2c.3 2.4 3.4 5.4 5.8 5.7l1-1.4 2 .9-.4 1.7c-2.9.7-7.9-3.4-8.9-6.6l1.7-.5z"/></svg>
+    </button>
+    <button class="hantar" id="btnSend">
+      <svg viewBox="0 0 24 24"><path d="M21.5 3.5 2.8 10.3c-.8.3-.8 1.4 0 1.7l6.4 2.3 2.3 6.4c.3.8 1.4.8 1.7 0z"/><path d="M21.5 3.5 9.2 14.3"/></svg>
+      Hantar ke Telegram
+    </button>
   </div>
 </div>
 
+<!-- ── panel admin ───────────────────────────────────────── -->
 <div class="sheet" id="sheet">
   <div class="sheet-in">
-    <div class="sheet-top"><h2>Tetapan Admin</h2><button class="x" id="btnClose">✕</button></div>
+    <div class="grip"></div>
+    <div class="sheet-top"><h2>Tetapan admin</h2><button class="tutup" id="btnClose" aria-label="Tutup">✕</button></div>
+
+    <div class="amaran" id="amaranAdmin" hidden>
+      Senarai <b>CONFIG.ADMIN</b> masih kosong, jadi semua guru boleh ubah tetapan. Isi emel admin dalam <b>index.html</b>.
+    </div>
+    <div class="who" id="who" hidden>
+      <img id="whoPic" alt="">
+      <div><b id="whoName">—</b><small id="whoMail">—</small></div>
+      <button id="btnOut">Log keluar</button>
+    </div>
+
     <div class="tabs">
       <button class="tab on" data-pane="p1">Telegram</button>
       <button class="tab" data-pane="p2">Senarai murid</button>
     </div>
 
     <div class="pane on" id="p1">
-      <div class="amaran" id="amaranAdmin" hidden>Senarai <b>CONFIG.ADMIN</b> masih kosong — semua guru boleh ubah tetapan. Isi emel admin dalam <b>index.html</b>.</div>
-      <div class="who" id="who" hidden>
-        <img id="whoPic" alt="">
-        <div><b id="whoName">—</b><small id="whoMail">—</small></div>
-        <button id="btnOut">Log keluar</button>
-      </div>
       <div class="field"><label for="token">Bot token</label>
-        <input type="password" id="token" placeholder="8123456789:AAH...">
-        <p class="hint">Dapatkan daripada @BotFather di Telegram.</p></div>
+        <input type="password" id="token" placeholder="8123456789:AAH..." autocomplete="off"></div>
       <div class="field"><label for="chat">Chat ID kumpulan sekolah</label>
-        <input type="text" id="chat" placeholder="-1001234567890">
-        <p class="hint">Tambah bot ke kumpulan, hantar satu mesej, kemudian tekan Semak sambungan.</p></div>
+        <input type="text" id="chat" placeholder="-1001234567890" inputmode="text" autocomplete="off"></div>
       <label class="check"><input type="checkbox" id="mono"> Hantar dalam blok monospace</label>
-      <button class="btn primary" id="btnSimpanTg" style="width:100%;margin-top:16px">Simpan ke Firebase</button>
-      <button class="mini" id="btnTest" style="width:100%;margin-top:8px">Semak sambungan</button>
+      <button class="utama" id="btnSimpanTg">Simpan ke Firebase</button>
+      <button class="kedua" id="btnTest">Semak sambungan</button>
       <p class="hint">Token disimpan dalam Firestore, bukan dalam fail app.</p>
     </div>
 
     <div class="pane" id="p2">
-      <button class="mini" id="btnImport" style="width:100%;margin-bottom:14px">Import fail Excel senarai murid</button>
+      <button class="kedua" id="btnImport" style="margin-top:0">Import fail Excel senarai murid</button>
       <input type="file" id="fileXls" accept=".xlsx,.xls" hidden>
-      <div class="field"><label for="namaKelas">Nama kelas</label>
-        <input type="text" id="namaKelas" placeholder="5  ILTIZAM"></div>
-      <div class="field"><label for="senarai">Senarai murid — satu nama satu baris</label>
+      <div class="field" style="margin-top:14px"><label for="namaKelas">Nama kelas</label>
+        <input type="text" id="namaKelas" placeholder="5 ILTIZAM"></div>
+      <div class="field"><label for="senarai">Senarai murid, satu nama satu baris</label>
         <textarea id="senarai" spellcheck="false" placeholder="L|Ahmad Danial&#10;P|Nur Aisyah"></textarea>
-        <p class="hint">Mula setiap baris dengan <b>L</b> (lelaki) atau <b>P</b> (perempuan), diikuti <b>|</b> dan nama.</p></div>
-      <button class="mini" id="btnApply" style="width:100%;margin-top:12px">Guna senarai ini (sementara)</button>
-      <button class="btn primary" id="btnSimpanKelas" style="width:100%;margin-top:8px">Simpan semua kelas ke Firebase</button>
+        <p class="hint">Mula setiap baris dengan <b>L</b> atau <b>P</b>, diikuti <b>|</b> dan nama.</p></div>
+      <button class="kedua" id="btnApply">Guna senarai ini buat sementara</button>
+      <button class="utama" id="btnSimpanKelas">Simpan semua kelas ke Firebase</button>
       <p class="hint">Simpan akan menggantikan keseluruhan senarai kelas dalam Firestore.</p>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 const $=id=>document.getElementById(id);
 const HARI=['AHAD','ISNIN','SELASA','RABU','KHAMIS','JUMAAT','SABTU'];
 const pad=n=>String(n).padStart(2,'0');
+const getar=ms=>{ try{ navigator.vibrate&&navigator.vibrate(ms); }catch{} };
 
-let DB={};                                   // { "5 ILTIZAM": ["L|Nama", ...] }
+let DB={};                                    // { "5 ILTIZAM": ["L|Nama", ...] }
 let TG={botToken:'',chatId:'',mono:false};
-let kelasKini='', absen=new Set(), ADMIN=false;
+let kelasKini='', absen=new Set(), ADMIN=false, tapis='';
 
 function parse(list){
   return (list||[]).map(s=>{
@@ -305,7 +488,7 @@ function parse(list){
 }
 const murid=()=>parse(DB[kelasKini]);
 
-/* ---- antara muka untuk modul Firebase ---- */
+/* ── antara muka untuk modul Firebase ───────────────────────── */
 window.EZ={
   buka(){ $('gate').hidden=true; },
   tutup(){ $('gate').hidden=false; },
@@ -321,8 +504,8 @@ window.EZ={
   },
   muatKelas(obj){
     DB=obj||{};
-    const keys=Object.keys(DB);
-    if(!keys.includes(kelasKini)) kelasKini=keys.sort((a,b)=>a.localeCompare(b,'ms',{numeric:true}))[0]||'';
+    const keys=Object.keys(DB).sort((a,b)=>a.localeCompare(b,'ms',{numeric:true}));
+    if(!keys.includes(kelasKini)) kelasKini=keys[0]||'';
     absen.clear(); drawKelas(); loadEditor(); render();
   },
   muatTelegram(t){
@@ -344,27 +527,54 @@ function drawKelas(){
   Object.keys(DB).sort((a,b)=>a.localeCompare(b,'ms',{numeric:true})).forEach(k=>{
     const o=document.createElement('option'); o.value=k; o.textContent=k; s.appendChild(o);
   });
+  if(!Object.keys(DB).length){
+    const o=document.createElement('option'); o.textContent='Tiada kelas'; s.appendChild(o);
+  }
   s.value=kelasKini;
 }
 function loadEditor(){
   $('namaKelas').value=kelasKini;
   $('senarai').value=(DB[kelasKini]||[]).join('\n');
 }
+
+const IKON_X='<svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7 7 17"/></svg>';
+
 function drawRoll(){
   const box=$('roll'), list=murid();
   box.innerHTML='';
   if(!list.length){
-    box.innerHTML='<div class="empty">Senarai murid belum dimuatkan.<br>Hubungi admin sekolah untuk mengisinya.</div>';
+    box.innerHTML='<div class="kosong">Senarai murid belum dimuatkan.<br>Hubungi admin sekolah untuk mengisinya.</div>';
     return;
   }
+  const q=tapis.toLowerCase();
+  let nampak=0;
   list.forEach((m,i)=>{
     const row=document.createElement('div');
     row.className='pupil'+(absen.has(i)?' absent':'');
-    row.innerHTML=`<span class="no">${pad(i+1)}</span><span class="jn">${m.j}</span>`+
-      `<span class="nm"></span><span class="st">${absen.has(i)?'Tidak hadir':'Hadir'}</span>`;
+    row.setAttribute('role','button');
+    row.setAttribute('aria-pressed',absen.has(i)?'true':'false');
+    if(q && !m.n.toLowerCase().includes(q)) row.hidden=true; else nampak++;
+    row.innerHTML=`<span class="no">${pad(i+1)}</span><span class="jn">${m.j}</span><span class="nm"></span>`+
+                  `<span class="st">${absen.has(i)?IKON_X:''}</span>`;
     row.querySelector('.nm').textContent=m.n;
-    row.addEventListener('click',()=>{ absen.has(i)?absen.delete(i):absen.add(i); render(); });
+    row.addEventListener('click',()=>{
+      absen.has(i)?absen.delete(i):absen.add(i);
+      getar(12); render();
+    });
     box.appendChild(row);
+  });
+  if(q && !nampak){
+    const e=document.createElement('div');
+    e.className='kosong'; e.textContent='Tiada nama sepadan dengan "'+tapis+'".';
+    box.appendChild(e);
+  }
+}
+function drawTicks(k){
+  const t=$('ticks'); t.innerHTML='';
+  k.list.forEach((_,i)=>{
+    const s=document.createElement('i');
+    s.className='tk'+(absen.has(i)?' off':'');
+    t.appendChild(s);
   });
 }
 function kira(){
@@ -396,20 +606,28 @@ function buildMsg(){
 function render(){
   const k=kira();
   const d=$('tarikh').value?new Date($('tarikh').value+'T00:00:00'):new Date();
-  $('hariChip').textContent=HARI[d.getDay()];
-  $('tBil').textContent=k.jumlah;
+  $('tHadir').textContent=`${pad(k.hadir)}/${pad(k.jumlah)}`;
+  $('hariChip').textContent=`hadir · ${HARI[d.getDay()]}`;
   $('tL').textContent=`${pad(k.lh)}/${pad(k.lj)}`;
   $('tP').textContent=`${pad(k.ph)}/${pad(k.pj)}`;
   $('tA').textContent=k.tak;
-  drawRoll();
+  drawRoll(); drawTicks(k);
   $('preview').textContent=buildMsg();
   const t=new Date(); $('stampTime').textContent=`${pad(t.getHours())}:${pad(t.getMinutes())}`;
 }
 
-$('kelas').addEventListener('change',e=>{ kelasKini=e.target.value; absen.clear(); loadEditor(); render(); });
-$('tarikh').addEventListener('input',render);
-$('btnReset').addEventListener('click',()=>{ absen.clear(); render(); toast('Semua murid ditanda hadir.'); });
+$('kelas').addEventListener('change',e=>{
+  kelasKini=e.target.value; absen.clear(); $('cari').value=''; tapis='';
+  loadEditor(); render();
+});
+$('tarikh').addEventListener('change',render);
+$('cari').addEventListener('input',e=>{ tapis=e.target.value.trim(); drawRoll(); });
+$('btnReset').addEventListener('click',()=>{
+  if(!absen.size) return toast('Semua murid sudah ditanda hadir.');
+  absen.clear(); getar(15); render(); toast('Semua murid ditanda hadir.');
+});
 
+/* ── panel admin ────────────────────────────────────────────── */
 function openSheet(pane='p1'){
   if(!ADMIN) return toast('Tetapan hanya untuk admin sekolah.','bad');
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.pane===pane));
@@ -421,7 +639,6 @@ $('btnClose').addEventListener('click',()=>$('sheet').classList.remove('open'));
 $('sheet').addEventListener('click',e=>{ if(e.target.id==='sheet') $('sheet').classList.remove('open'); });
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>openSheet(t.dataset.pane)));
 
-/* ---- editor senarai (admin) ---- */
 $('btnApply').addEventListener('click',()=>{
   const nama=$('namaKelas').value.trim();
   const baris=$('senarai').value.split('\n').map(s=>s.trim()).filter(Boolean);
@@ -432,6 +649,7 @@ $('btnApply').addEventListener('click',()=>{
   drawKelas(); render();
   toast(`${baris.length} murid dimuatkan. Tekan Simpan untuk kekalkan.`,'good');
 });
+
 $('btnImport').addEventListener('click',()=>{
   if(typeof XLSX==='undefined') return toast('Pustaka Excel tidak dimuatkan. Sambung internet.','bad');
   $('fileXls').click();
@@ -443,7 +661,6 @@ $('fileXls').addEventListener('change',async e=>{
     const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
     const up=v=>String(v==null?'':v).toUpperCase().trim();
 
-    // cari baris tajuk
     let hdr=-1;
     for(let i=0;i<Math.min(rows.length,40);i++) if(rows[i].some(c=>up(c)==='NAMA')){ hdr=i; break; }
     if(hdr<0) throw new Error('Lajur NAMA tidak dijumpai.');
@@ -456,36 +673,33 @@ $('fileXls').addEventListener('change',async e=>{
     let iKelas =H.indexOf('NAMA KELAS');
     if(iKelas<0) iKelas=H.findIndex(h=>h.includes('KELAS')&&!h.includes('TARIKH')&&!h.includes('JENIS')&&!h.includes('GURU'));
 
-    // "TAHUN LIMA" + "ILTIZAM"  ->  "5 ILTIZAM"
+    /* "TAHUN LIMA" + "ILTIZAM" -> "5 ILTIZAM" */
     const NOM={SATU:'1',DUA:'2',TIGA:'3',EMPAT:'4',LIMA:'5',ENAM:'6'};
     const gabung=(thn,kls)=>{
       thn=up(thn); kls=up(kls);
       if(!kls) return thn||'KELAS TANPA NAMA';
-      if(/PRASEKOLAH|PPKI|KHAS/.test(kls)) return kls;   // sudah unik
-      if(/^\d/.test(kls)) return kls;                     // sudah ada nombor
+      if(/PRASEKOLAH|PPKI|KHAS/.test(kls)) return kls;
+      if(/^\d/.test(kls)) return kls;
       let d='';
       const m=thn.match(/(?:^|\s)(\d)(?:\s|$)/);
       if(m) d=m[1]; else for(const w in NOM) if(thn.includes(w)){ d=NOM[w]; break; }
       return d?d+' '+kls:kls;
     };
 
-    const bank={};
-    let langkau=0;
+    const bank={}; let langkau=0;
     for(let i=hdr+1;i<rows.length;i++){
       const nama=String(rows[i][iNama]||'').trim();
       if(!nama) continue;
       if(iStat>=0){
         const st=up(rows[i][iStat]);
-        if(st && st!=='BERSEKOLAH'){ langkau++; continue; }   // murid berhenti/bertukar
+        if(st && st!=='BERSEKOLAH'){ langkau++; continue; }
       }
       let j;
-      if(iJan>=0 && up(rows[i][iJan])) j = up(rows[i][iJan]).startsWith('P') ? 'P' : 'L';
+      if(iJan>=0 && up(rows[i][iJan])) j = up(rows[i][iJan]).startsWith('P')?'P':'L';
       else { const u=' '+nama.toUpperCase()+' '; j=(u.includes(' BINTI ')||u.includes(' BT ')||u.includes(' BINTE '))?'P':'L'; }
-
       const kelas=gabung(iThn>=0?rows[i][iThn]:'', iKelas>=0?rows[i][iKelas]:'');
       (bank[kelas]=bank[kelas]||[]).push(j+'|'+nama);
     }
-
     const keys=Object.keys(bank).sort((a,b)=>a.localeCompare(b,'ms',{numeric:true}));
     if(!keys.length) throw new Error('Tiada nama murid dijumpai.');
     keys.forEach(k=>bank[k].sort((a,b)=>a.slice(2).localeCompare(b.slice(2),'ms')));
@@ -498,13 +712,14 @@ $('fileXls').addEventListener('change',async e=>{
   e.target.value='';
 });
 
+/* ── toast ──────────────────────────────────────────────────── */
 let tId;
 function toast(msg,kind=''){
   const t=$('toast'); t.textContent=msg; t.className='toast show '+kind;
   clearTimeout(tId); tId=setTimeout(()=>t.className='toast '+kind,3600);
 }
 
-/* ---- telegram ---- */
+/* ── telegram ───────────────────────────────────────────────── */
 async function tg(method,body,tokenPaksa){
   const token=(tokenPaksa||TG.botToken||'').trim();
   if(!token) throw new Error('Bot token belum ditetapkan oleh admin.');
@@ -527,43 +742,46 @@ $('btnTest').addEventListener('click',async e=>{
 $('btnSend').addEventListener('click',async()=>{
   if(!TG.chatId) return toast('Chat ID belum ditetapkan oleh admin.','bad');
   if(!kira().jumlah) return toast('Tiada murid dalam kelas ini.','bad');
-  const b=$('btnSend'); b.disabled=true; b.textContent='Menghantar…';
+  const b=$('btnSend'), asal=b.innerHTML;
+  b.disabled=true; b.textContent='Menghantar…';
   const teks=buildMsg();
   try{
     await tg('sendMessage', TG.mono
       ? {chat_id:TG.chatId,text:'<pre>'+teks.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</pre>',parse_mode:'HTML'}
       : {chat_id:TG.chatId,text:teks});
+    getar([12,60,12]);
     toast('Laporan dihantar ke Telegram.','good');
   }catch(err){ toast(err.message,'bad'); }
-  b.disabled=false; b.textContent='Hantar ke Telegram';
+  b.disabled=false; b.innerHTML=asal;
 });
 
 async function salin(teks){
   try{ await navigator.clipboard.writeText(teks); }
   catch{
     const ta=document.createElement('textarea'); ta.value=teks;
+    ta.style.position='fixed'; ta.style.opacity='0';
     document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
   }
 }
 $('btnCopy').addEventListener('click',async()=>{ await salin(buildMsg()); toast('Teks disalin.','good'); });
 $('btnWa').addEventListener('click',()=>window.open('https://wa.me/?text='+encodeURIComponent(buildMsg()),'_blank'));
 
-/* ---- pemasangan PWA ---- */
+/* ── pemasangan PWA ─────────────────────────────────────────── */
 let promptPasang=null;
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); promptPasang=e; $('btnInstall').hidden=false; });
 $('btnInstall').addEventListener('click',async()=>{
-  if(!promptPasang) return toast('Buka menu pelayar dan pilih “Tambah ke skrin utama”.');
+  if(!promptPasang) return toast('Buka menu pelayar dan pilih “Tambah ke Skrin Utama”.');
   promptPasang.prompt();
   const {outcome}=await promptPasang.userChoice;
   promptPasang=null; $('btnInstall').hidden=true;
-  if(outcome==='accepted') toast('App dipasang pada skrin utama.','good');
+  if(outcome==='accepted') toast('EZ-HADIR dipasang pada skrin utama.','good');
 });
 window.addEventListener('appinstalled',()=>{ $('btnInstall').hidden=true; });
 const iOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
 const berdiri=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
 if(iOS&&!berdiri) $('btnInstall').hidden=false;
 
-/* ---- service worker ---- */
+/* ── service worker ─────────────────────────────────────────── */
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js').then(reg=>{
@@ -579,7 +797,6 @@ if('serviceWorker' in navigator){
 }
 
 init();
-
 </script>
 
 <script type="module">
